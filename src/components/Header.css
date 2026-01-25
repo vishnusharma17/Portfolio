@@ -1,0 +1,119 @@
+.header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 999;
+  padding: 14px 5%;
+  background: rgba(15, 15, 35, 0.4);
+  backdrop-filter: blur(18px);
+  transition: all 0.35s ease;
+  border-bottom: 1px solid rgba(102, 126, 234, 0.15);
+}
+
+.header.scrolled {
+  background: rgba(15, 15, 35, 0.85);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.header-container {
+  max-width: 1300px;
+  margin: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* LOGO */
+
+.logo {
+  font-size: 22px;
+  font-weight: 800;
+  color: white;
+  text-decoration: none;
+  letter-spacing: 0.5px;
+}
+
+.logo span {
+  color: #667eea;
+}
+
+/* NAV LINKS */
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 28px;
+  align-items: center;
+}
+
+.nav-links li a {
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;
+  position: relative;
+  transition: 0.3s;
+}
+
+.nav-links li a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 0%;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    #667eea,
+    #764ba2
+  );
+  transition: 0.3s;
+}
+
+.nav-links li a:hover::after,
+.nav-links li a.active::after {
+  width: 100%;
+}
+
+.nav-links li a:hover {
+  color: white;
+}
+
+/* MENU BTN */
+
+.menu-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 22px;
+  display: none;
+  cursor: pointer;
+}
+
+/* MOBILE MENU */
+
+.nav-links.mobile {
+  position: absolute;
+  top: 70px;
+  right: 5%;
+  background: rgba(15, 15, 40, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 25px;
+  flex-direction: column;
+  gap: 18px;
+  border: 1px solid rgba(102, 126, 234, 0.25);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 900px) {
+  .menu-btn {
+    display: block;
+  }
+
+  .nav-links.desktop {
+    display: none;
+  }
+}

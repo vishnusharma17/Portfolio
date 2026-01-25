@@ -1,0 +1,116 @@
+.skills-section {
+  width: 100%;
+  padding: 100px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  position: relative;
+}
+
+.skills-header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.skills-header h2 {
+  font-size: 42px;
+  margin-bottom: 15px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
+}
+
+.skills-header p {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.skills-grid {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 40px;
+}
+
+.skill-category {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.skill-category h3 {
+  font-size: 24px;
+  margin-bottom: 25px;
+  color: #fff;
+  font-weight: 700;
+  text-align: center;
+  padding-bottom: 15px;
+  border-bottom: 2px solid rgba(102, 126, 234, 0.5);
+}
+
+.skills-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.skill-item {
+  width: 100%;
+}
+
+.skill-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.skill-icon {
+  font-size: 24px;
+}
+
+.skill-name {
+  flex: 1;
+  font-weight: 600;
+  color: #fff;
+  font-size: 16px;
+}
+
+.skill-percent {
+  font-weight: 700;
+  color: #667eea;
+  font-size: 14px;
+}
+
+.skill-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.skill-progress {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+}
+
+@media (max-width: 768px) {
+  .skills-grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .skills-header h2 {
+    font-size: 32px;
+  }
+}
+
