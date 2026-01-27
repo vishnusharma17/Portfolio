@@ -9,7 +9,7 @@ const Stats = () => {
 
   const stats = [
     {
-      number: 10,
+      number: 5,
       label: "Projects Completed",
       icon: FaRocket,
     },
@@ -19,7 +19,7 @@ const Stats = () => {
       icon: FaLaptopCode,
     },
     {
-      number: 100,
+      number: 50,
       label: "Code Commits",
       icon: FaCode,
     },
