@@ -7,10 +7,12 @@ import {
   FaPhone,
 } from "react-icons/fa";
 
+import emailjs from "@emailjs/browser";
 import { motion } from "framer-motion";
 import { useCallback, useState } from "react";
+
 import { contactInfo, socialLinks } from "../config/links";
-import { submitContactForm, trackLinkClick } from "../services/api";
+import { trackLinkClick } from "../services/api";
 import "./ContactForm.css";
 
 const ContactForm = () => {
@@ -25,7 +27,6 @@ const ContactForm = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
-  const [errorMessage, setErrorMessage] = useState("");
 
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
@@ -40,75 +41,67 @@ const ContactForm = () => {
     );
   }, []);
 
-  const validate = useCallback(() => {
+  const validate = () => {
     const newErrors = {};
 
     if (!formData.firstName.trim())
-      newErrors.firstName = "First name is required";
+      newErrors.firstName = "First name required";
 
     if (!formData.lastName.trim())
-      newErrors.lastName = "Last name is required";
+      newErrors.lastName = "Last name required";
 
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email";
-    }
+    if (!formData.email.trim())
+      newErrors.email = "Email required";
 
     if (!formData.subject.trim())
-      newErrors.subject = "Subject is required";
+      newErrors.subject = "Subject required";
 
-    if (!formData.message.trim()) {
-      newErrors.message = "Message is required";
-    } else if (formData.message.length < 10) {
-      newErrors.message = "Message must be at least 10 characters";
-    }
+    if (!formData.message.trim())
+      newErrors.message = "Message required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [formData]);
+  };
 
-  const handleSubmit = useCallback(
-    async (e) => {
-      e.preventDefault();
+  // ✅ EMAILJS SUBMIT
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-      if (!validate()) return;
+    if (!validate()) return;
 
-      setIsSubmitting(true);
-      setSubmitStatus(null);
-      setErrorMessage("");
+    setIsSubmitting(true);
 
-      try {
-        const result = await submitContactForm(formData);
+    try {
+      await emailjs.send(
+        "YOUR_SERVICE_ID",
+        "YOUR_TEMPLATE_ID",
+        {
+          from_name:
+            formData.firstName +
+            " " +
+            formData.lastName,
+          email: formData.email,
+          subject: formData.subject,
+          message: formData.message,
+        },
+        "YOUR_PUBLIC_KEY"
+      );
 
-        if (result.success) {
-          setSubmitStatus("success");
-          setFormData({
-            firstName: "",
-            lastName: "",
-            email: "",
-            subject: "",
-            message: "",
-          });
+      setSubmitStatus("success");
 
-          setTimeout(() => setSubmitStatus(null), 5000);
-        }
-      } catch (err) {
-        setSubmitStatus("error");
-        setErrorMessage(
-          err.message || "Failed to send message. Please try again."
-        );
-
-        setTimeout(() => {
-          setSubmitStatus(null);
-          setErrorMessage("");
-        }, 5000);
-      } finally {
-        setIsSubmitting(false);
-      }
-    },
-    [formData, validate]
-  );
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        subject: "",
+        message: "",
+      });
+    } catch (err) {
+      setSubmitStatus("error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleSocialClick = useCallback((type, url) => {
     trackLinkClick(type, url);
@@ -116,31 +109,16 @@ const ContactForm = () => {
 
   return (
     <div className="contact-main">
-      {/* LEFT SIDE */}
+      {/* LEFT */}
       <div className="contact-left">
-        <motion.div
-          className="c-heading"
-          initial={{ opacity: 0, x: -30 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-        >
-          <h1>Get In Touch</h1>
-          <span>
-            I'm always open to discussing new projects, creative ideas, or
-            opportunities to be part of your vision.
-          </span>
-        </motion.div>
+        <h1>Get In Touch</h1>
 
-        {/* INFO GRID */}
         <div className="contact-info-grid">
           <InfoCard
             icon={<FaPhone />}
             title="Phone"
             value={contactInfo.phone}
             link={socialLinks.phone}
-            onClick={() =>
-              handleSocialClick("phone", socialLinks.phone)
-            }
           />
 
           <InfoCard
@@ -148,9 +126,6 @@ const ContactForm = () => {
             title="Email"
             value={contactInfo.email}
             link={socialLinks.email}
-            onClick={() =>
-              handleSocialClick("email", socialLinks.email)
-            }
           />
 
           <InfoCard
@@ -166,49 +141,28 @@ const ContactForm = () => {
           />
         </div>
 
-        {/* SOCIAL */}
         <div className="social-links-contact">
           <h3>Follow Me</h3>
+
           <div className="social-icons">
             <SocialLink
               icon={<FaGithub />}
               label="GitHub"
               url={socialLinks.github}
-              onClick={() =>
-                handleSocialClick("github", socialLinks.github)
-              }
             />
+
             <SocialLink
               icon={<FaLinkedin />}
               label="LinkedIn"
               url={socialLinks.linkedin}
-              onClick={() =>
-                handleSocialClick(
-                  "linkedin",
-                  socialLinks.linkedin
-                )
-              }
-            />
-            <SocialLink
-              icon={<FaEnvelope />}
-              label="Email"
-              url={socialLinks.email}
-              onClick={() =>
-                handleSocialClick("email", socialLinks.email)
-              }
             />
           </div>
         </div>
       </div>
 
-      {/* RIGHT SIDE */}
+      {/* RIGHT */}
       <div className="contact-right">
-        <motion.form
-          id="contactForm"
-          onSubmit={handleSubmit}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
+        <motion.form onSubmit={handleSubmit}>
           <div className="name-section">
             <Field
               label="First Name"
@@ -217,6 +171,7 @@ const ContactForm = () => {
               error={errors.firstName}
               onChange={handleChange}
             />
+
             <Field
               label="Last Name"
               name="lastName"
@@ -226,23 +181,21 @@ const ContactForm = () => {
             />
           </div>
 
-          <div className="email-section">
-            <Field
-              label="Email"
-              name="email"
-              value={formData.email}
-              error={errors.email}
-              onChange={handleChange}
-              type="email"
-            />
-            <Field
-              label="Subject"
-              name="subject"
-              value={formData.subject}
-              error={errors.subject}
-              onChange={handleChange}
-            />
-          </div>
+          <Field
+            label="Email"
+            name="email"
+            value={formData.email}
+            error={errors.email}
+            onChange={handleChange}
+          />
+
+          <Field
+            label="Subject"
+            name="subject"
+            value={formData.subject}
+            error={errors.subject}
+            onChange={handleChange}
+          />
 
           <div className="message">
             <label>Message</label>
@@ -250,100 +203,30 @@ const ContactForm = () => {
               name="message"
               value={formData.message}
               onChange={handleChange}
-              className={errors.message ? "error" : ""}
             />
-            {errors.message && (
-              <span className="error-message">
-                {errors.message}
-              </span>
-            )}
           </div>
 
+          <button type="submit" disabled={isSubmitting}>
+            {isSubmitting
+              ? "Sending..."
+              : "Send Message"}
+          </button>
+
           {submitStatus === "success" && (
-            <div className="success-message">
-              ✓ Message sent successfully!
-            </div>
+            <p className="success-message">
+              ✅ Message sent!
+            </p>
           )}
 
           {submitStatus === "error" && (
-            <div className="error-message-box">
-              ✗ {errorMessage}
-            </div>
+            <p className="error-message-box">
+              ❌ Failed to send.
+            </p>
           )}
-
-          <div className="btn">
-            <motion.button
-              type="submit"
-              disabled={isSubmitting}
-              whileHover={!isSubmitting ? { scale: 1.03 } : {}}
-            >
-              {isSubmitting ? (
-                <>
-                  <span className="spinner" />
-                  Sending...
-                </>
-              ) : (
-                "Send Message"
-              )}
-            </motion.button>
-          </div>
         </motion.form>
       </div>
     </div>
   );
 };
-
-const InfoCard = ({ icon, title, value, link, onClick }) => (
-  <motion.div
-    className="contact-info-card"
-    whileHover={{ y: -6, scale: 1.04 }}
-  >
-    <div className="contact-icon">{icon}</div>
-    <h3>{title}</h3>
-    {link ? (
-      <a href={link} onClick={onClick}>
-        {value}
-      </a>
-    ) : (
-      <span>{value}</span>
-    )}
-  </motion.div>
-);
-
-const SocialLink = ({ icon, label, url, onClick }) => (
-  <a
-    href={url}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="social-link"
-    onClick={onClick}
-  >
-    <span className="social-icon">{icon}</span>
-    <span>{label}</span>
-  </a>
-);
-
-const Field = ({
-  label,
-  name,
-  value,
-  error,
-  onChange,
-  type = "text",
-}) => (
-  <div>
-    <label>{label}</label>
-    <input
-      type={type}
-      name={name}
-      value={value}
-      onChange={onChange}
-      className={error ? "error" : ""}
-    />
-    {error && (
-      <span className="error-message">{error}</span>
-    )}
-  </div>
-);
 
 export default ContactForm;
