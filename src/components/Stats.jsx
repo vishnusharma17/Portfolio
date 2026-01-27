@@ -24,8 +24,8 @@ const Stats = () => {
       icon: FaCode,
     },
     {
-      number: 2,
-      label: "Years Experience",
+      number: 6,
+      label: "Months Experience",
       icon: FaStar,
     },
   ];
