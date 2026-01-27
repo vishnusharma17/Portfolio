@@ -3,6 +3,9 @@ import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { resumeLink, socialLinks } from "../config/links";
 import { trackLinkClick } from "../services/api";
+import { asset } from "../utils/assets";
+
+
 import "./Hero.css";
 
 const Hero = () => {
@@ -139,7 +142,8 @@ const Hero = () => {
           transition={{ duration: 0.8, delay: 0.3 }}
         >
           <div className="image-wrapper dev-style">
-            <img src="/images/real.jpeg" alt="Vishnu Sharma" />
+           
+          <img src={asset("images/real.jpeg")} />
             <div className="image-glow"></div>
             <div className="image-frame"></div>
           </div>
