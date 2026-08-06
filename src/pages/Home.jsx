@@ -61,6 +61,23 @@ const Home = () => {
             </div>
 
             <div className="about-main-content">
+              {about.image ? (
+                <motion.div
+                  className="about-photo"
+                  initial={{ opacity: 0, x: -24 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6 }}
+                >
+                  <img
+                    src={about.image}
+                    alt={content?.profile?.name || "About"}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </motion.div>
+              ) : null}
+
               <div className="about-text">
                 <p className="about-intro">
                   {about.intro?.includes("Vishnu Sharma") ? (

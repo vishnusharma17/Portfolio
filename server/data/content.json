@@ -9,6 +9,7 @@
     "resume": "images/resume.pdf"
   },
   "about": {
+    "image": "images/real.jpeg",
     "intro": "I am Vishnu Sharma — a passionate Web Developer with expertise in building modern, responsive web applications.",
     "paragraphs": [
       "With a strong foundation in frontend technologies like React, JavaScript, and modern CSS, I bring ideas to life through clean code and thoughtful design.",
