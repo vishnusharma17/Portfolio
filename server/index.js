@@ -1,9 +1,20 @@
 import cors from 'cors'
+import 'dotenv/config'
 import express from 'express'
 import fs from 'fs/promises'
 import multer from 'multer'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import {
+  clearExpiredSessions,
+  createOtp,
+  isValidSession,
+  maskPhone,
+  normalizePhone,
+  revokeSession,
+  verifyOtp,
+} from './otp.js'
+import { sendSmsOtp } from './sms.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -15,9 +26,13 @@ const PUBLIC_IMAGES = path.join(ROOT, 'public', 'images')
 const DOCS_DIR = path.join(ROOT, 'docs')
 
 const PORT = process.env.PORT || 4000
-const ADMIN_SECRET = process.env.ADMIN_SECRET || 'vishnu-admin-2026'
+const ADMIN_PHONE = normalizePhone(
+  process.env.ADMIN_PHONE || '919664332928'
+)
 const SERVE_FRONTEND =
   process.env.SERVE_FRONTEND === 'true' || process.env.NODE_ENV === 'production'
+const ALLOW_DEV_OTP =
+  process.env.ALLOW_DEV_OTP === 'true' || process.env.NODE_ENV !== 'production'
 
 const app = express()
 app.use(cors())
@@ -56,7 +71,6 @@ async function writeContent(data) {
   const json = JSON.stringify(data, null, 2)
   await fs.writeFile(DATA_FILE, json)
 
-  // Keep fallbacks in sync for Vite public + GitHub Pages docs
   const targets = [
     path.join(ROOT, 'public', 'content.json'),
     path.join(DOCS_DIR, 'content.json'),
@@ -73,15 +87,93 @@ async function writeContent(data) {
 }
 
 function requireAdmin(req, res, next) {
-  const key = req.headers['x-admin-key'] || req.query.key
-  if (key !== ADMIN_SECRET) {
-    return res.status(401).json({ error: 'Unauthorized' })
+  clearExpiredSessions()
+  const token = req.headers['x-admin-token'] || req.headers['x-admin-key']
+  if (!isValidSession(token)) {
+    return res.status(401).json({ error: 'Unauthorized. Verify OTP first.' })
   }
   next()
 }
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, serveFrontend: SERVE_FRONTEND })
+})
+
+app.get('/api/admin/otp-info', (_req, res) => {
+  res.json({
+    phoneMasked: maskPhone(ADMIN_PHONE),
+    message: 'OTP will be sent to your registered mobile number.',
+  })
+})
+
+app.post('/api/admin/request-otp', async (req, res) => {
+  try {
+    const requested = normalizePhone(req.body?.phone || ADMIN_PHONE)
+    if (requested !== ADMIN_PHONE) {
+      return res.status(403).json({
+        error: 'This number is not authorized for admin access.',
+      })
+    }
+
+    const { code, expiresIn } = createOtp()
+    const sms = await sendSmsOtp(ADMIN_PHONE, code)
+
+    if (!sms.ok) {
+      console.warn(`[OTP SMS failed via ${sms.provider}]`, sms.detail)
+      console.log(`[OTP for +${ADMIN_PHONE}] ${code}`)
+
+      // Dev fallback: still allow flow when SMS provider fails
+      if (ALLOW_DEV_OTP) {
+        return res.json({
+          success: true,
+          message: `SMS provider unavailable (${sms.provider}). Dev OTP logged on server.`,
+          phoneMasked: maskPhone(ADMIN_PHONE),
+          expiresIn,
+          channel: 'dev-console',
+          // Only in non-production so local testing works without SMS credits
+          ...(process.env.NODE_ENV !== 'production' ? { devOtp: code } : {}),
+        })
+      }
+
+      return res.status(502).json({
+        error:
+          'Could not send SMS OTP. Configure FAST2SMS_API_KEY or TWILIO credentials.',
+        detail: sms.detail,
+      })
+    }
+
+    console.log(`[OTP] sent via ${sms.provider} to ${maskPhone(ADMIN_PHONE)}`)
+    res.json({
+      success: true,
+      message: `OTP sent to ${maskPhone(ADMIN_PHONE)}`,
+      phoneMasked: maskPhone(ADMIN_PHONE),
+      expiresIn,
+      channel: sms.provider,
+    })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Failed to send OTP' })
+  }
+})
+
+app.post('/api/admin/verify-otp', (req, res) => {
+  const result = verifyOtp(req.body?.otp)
+  if (!result.ok) {
+    return res.status(401).json({ error: result.error })
+  }
+
+  res.json({
+    success: true,
+    token: result.token,
+    expiresIn: result.expiresIn,
+    message: 'OTP verified. Admin unlocked.',
+  })
+})
+
+app.post('/api/admin/logout', (req, res) => {
+  const token = req.headers['x-admin-token'] || req.headers['x-admin-key']
+  revokeSession(token)
+  res.json({ success: true })
 })
 
 app.get('/api/content', async (_req, res) => {
@@ -159,7 +251,6 @@ app.post('/api/upload', requireAdmin, upload.single('file'), async (req, res) =>
     const publicPath = path.join(PUBLIC_IMAGES, req.file.filename)
     await fs.copyFile(req.file.path, publicPath)
 
-    // Also copy into docs for production/live static hosting
     try {
       const docsImages = path.join(DOCS_DIR, 'images')
       await fs.mkdir(docsImages, { recursive: true })
@@ -179,7 +270,6 @@ app.post('/api/upload', requireAdmin, upload.single('file'), async (req, res) =>
   }
 })
 
-// Live server: serve built frontend from docs/ under /Portfolio/
 async function setupFrontend() {
   if (!SERVE_FRONTEND) return
 
@@ -191,7 +281,7 @@ async function setupFrontend() {
   }
 
   app.use('/Portfolio', express.static(DOCS_DIR, { index: 'index.html' }))
-  app.get(['/Portfolio', '/Portfolio/*'], (req, res) => {
+  app.get(['/Portfolio', '/Portfolio/*'], (_req, res) => {
     res.sendFile(path.join(DOCS_DIR, 'index.html'))
   })
   app.get('/', (_req, res) => {
@@ -203,8 +293,8 @@ await setupFrontend()
 
 app.listen(PORT, () => {
   console.log(`Portfolio API running on http://localhost:${PORT}`)
+  console.log(`Admin OTP phone: ${maskPhone(ADMIN_PHONE)}`)
   if (SERVE_FRONTEND) {
     console.log(`Frontend: http://localhost:${PORT}/Portfolio/`)
   }
-  console.log(`Admin key default: ${ADMIN_SECRET}`)
 })

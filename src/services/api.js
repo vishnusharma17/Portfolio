@@ -63,10 +63,10 @@ export async function fetchContent() {
   }
 }
 
-export async function saveContent(content, adminKey) {
+export async function saveContent(content, adminToken) {
   return request('/content', {
     method: 'PUT',
-    headers: { 'x-admin-key': adminKey },
+    headers: { 'x-admin-token': adminToken },
     body: JSON.stringify(content),
   })
 }
@@ -94,13 +94,13 @@ export async function submitContactForm(formData) {
   }
 }
 
-export async function uploadFile(file, adminKey) {
+export async function uploadFile(file, adminToken) {
   const formData = new FormData()
   formData.append('file', file)
 
   const response = await fetch(`${API_ROOT}/upload`, {
     method: 'POST',
-    headers: { 'x-admin-key': adminKey },
+    headers: { 'x-admin-token': adminToken },
     body: formData,
   })
 
@@ -112,9 +112,34 @@ export async function uploadFile(file, adminKey) {
   return response.json()
 }
 
-export async function fetchMessages(adminKey) {
+export async function fetchMessages(adminToken) {
   return request('/messages', {
-    headers: { 'x-admin-key': adminKey },
+    headers: { 'x-admin-token': adminToken },
+  })
+}
+
+export async function fetchOtpInfo() {
+  return request('/admin/otp-info')
+}
+
+export async function requestAdminOtp(phone) {
+  return request('/admin/request-otp', {
+    method: 'POST',
+    body: JSON.stringify({ phone }),
+  })
+}
+
+export async function verifyAdminOtp(otp) {
+  return request('/admin/verify-otp', {
+    method: 'POST',
+    body: JSON.stringify({ otp }),
+  })
+}
+
+export async function logoutAdmin(adminToken) {
+  return request('/admin/logout', {
+    method: 'POST',
+    headers: { 'x-admin-token': adminToken },
   })
 }
 

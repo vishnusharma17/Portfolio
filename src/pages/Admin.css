@@ -49,6 +49,130 @@
   cursor: pointer;
 }
 
+.admin-card button.ghost {
+  background: transparent;
+  color: var(--text);
+}
+
+.admin-card button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.otp-phone {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.otp-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.otp-phone strong {
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+}
+
+.otp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.otp-field input {
+  letter-spacing: 0.35em;
+  font-size: 1.25rem;
+  text-align: center;
+}
+
+.file-chooser {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.file-chooser-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.file-preview {
+  width: 140px;
+  height: 140px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  background: #000;
+}
+
+.file-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(100%);
+  display: block;
+}
+
+.file-current {
+  font-size: 0.9rem;
+  color: var(--muted);
+  word-break: break-all;
+}
+
+.file-input-hidden {
+  display: none !important;
+}
+
+.file-chooser-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.file-choose-btn,
+.file-clear-btn {
+  padding: 10px 14px;
+  border: 1px solid var(--white);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.file-choose-btn {
+  background: var(--white);
+  color: var(--bg);
+}
+
+.file-choose-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.file-clear-btn {
+  background: transparent;
+  color: var(--text);
+}
+
 .admin-actions button:not(.primary) {
   background: transparent;
   color: var(--text);
