@@ -1,8 +1,12 @@
 import { motion } from 'framer-motion'
-import { skills } from '../data/skills'
+import { useContent } from '../context/ContentContext'
+import { getIcon } from '../utils/iconMap'
 import './Skills.css'
 
 const Skills = () => {
+  const { content } = useContent()
+  const skills = content?.skills || []
+
   return (
     <section id="skills" className="skills-section">
       <motion.div
@@ -28,8 +32,8 @@ const Skills = () => {
           >
             <h3>{category.category}</h3>
             <div className="skills-list">
-              {category.items.map((skill, index) => {
-                const Icon = skill.icon
+              {(category.items || []).map((skill, index) => {
+                const Icon = getIcon(skill.icon)
                 return (
                   <motion.div
                     key={skill.name}

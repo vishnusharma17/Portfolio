@@ -14,25 +14,39 @@ A modern, responsive portfolio website built with React, featuring smooth animat
 
 ## 📦 Installation
 
-1. Install dependencies:
+1. Install frontend + API dependencies:
 ```bash
 npm install
+npm --prefix server install
 ```
 
-2. Start development server:
+2. Run frontend + backend together (local):
 ```bash
 npm run dev
 ```
+- Site: `http://localhost:5173/`
+- API: `http://localhost:4000` (proxied via `/api`)
+- Admin: `http://localhost:5173/admin`
+- Default admin key: `vishnu-admin-2026`
 
-3. Build for production:
+3. Build for GitHub Pages (`docs/`, base `/Portfolio/`):
 ```bash
 npm run build
 ```
 
-4. Preview production build:
+4. Preview the GitHub Pages build locally:
 ```bash
 npm run preview
 ```
+Open `http://localhost:4173/Portfolio/`
+
+5. Live full-stack server (API + built site):
+```bash
+npm start
+```
+Open `http://localhost:4000/Portfolio/`
+
+Content lives in `server/data/content.json`, with fallbacks in `public/content.json` and `docs/content.json`.
 
 ## 🛠️ Tech Stack
 

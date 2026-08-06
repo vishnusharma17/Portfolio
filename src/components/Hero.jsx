@@ -8,19 +8,21 @@ import {
   FaLinkedin,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { resumeLink, socialLinks } from "../config/links";
+import { useContent } from "../context/ContentContext";
 import { trackLinkClick } from "../services/api";
-import { asset } from "../utils/assets";
-
 import "./Hero.css";
 
 const Hero = () => {
   const navigate = useNavigate();
+  const { content } = useContent();
+  const profile = content?.profile || {};
+  const social = content?.social || {};
 
   const handleResumeClick = useCallback(() => {
-    trackLinkClick("resume", resumeLink);
-    window.open(resumeLink, "_blank");
-  }, []);
+    if (!profile.resume) return;
+    trackLinkClick("resume", profile.resume);
+    window.open(profile.resume, "_blank");
+  }, [profile.resume]);
 
   const handleSocialClick = useCallback((type, url) => {
     trackLinkClick(type, url);
@@ -30,7 +32,11 @@ const Hero = () => {
     <section className="hero-section">
       <div
         className="hero-media"
-        style={{ backgroundImage: `url(${asset("images/real.jpeg")})` }}
+        style={{
+          backgroundImage: profile.heroImage
+            ? `url(${profile.heroImage})`
+            : undefined,
+        }}
         aria-hidden="true"
       />
       <div className="hero-overlay" aria-hidden="true" />
@@ -48,7 +54,7 @@ const Hero = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.15 }}
           >
-            <FaCode aria-hidden="true" /> Full-Stack Web Developer
+            <FaCode aria-hidden="true" /> {profile.title || "Full-Stack Web Developer"}
           </motion.p>
 
           <motion.h1
@@ -57,7 +63,7 @@ const Hero = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
           >
-            Vishnu Sharma
+            {profile.name || "Vishnu Sharma"}
           </motion.h1>
 
           <motion.p
@@ -66,8 +72,7 @@ const Hero = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
-            Building clean, scalable web applications with React, Node.js, and
-            modern tooling.
+            {profile.tagline}
           </motion.p>
 
           <motion.div
@@ -101,33 +106,37 @@ const Hero = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.7 }}
           >
-            <a
-              href={socialLinks.github}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="GitHub"
-              onClick={() => handleSocialClick("github", socialLinks.github)}
-            >
-              <FaGithub />
-            </a>
-            <a
-              href={socialLinks.linkedin}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="LinkedIn"
-              onClick={() =>
-                handleSocialClick("linkedin", socialLinks.linkedin)
-              }
-            >
-              <FaLinkedin />
-            </a>
-            <a
-              href={socialLinks.email}
-              aria-label="Email"
-              onClick={() => handleSocialClick("email", socialLinks.email)}
-            >
-              <FaEnvelope />
-            </a>
+            {social.github && (
+              <a
+                href={social.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="GitHub"
+                onClick={() => handleSocialClick("github", social.github)}
+              >
+                <FaGithub />
+              </a>
+            )}
+            {social.linkedin && (
+              <a
+                href={social.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="LinkedIn"
+                onClick={() => handleSocialClick("linkedin", social.linkedin)}
+              >
+                <FaLinkedin />
+              </a>
+            )}
+            {social.email && (
+              <a
+                href={social.email}
+                aria-label="Email"
+                onClick={() => handleSocialClick("email", social.email)}
+              >
+                <FaEnvelope />
+              </a>
+            )}
           </motion.div>
         </motion.div>
       </div>

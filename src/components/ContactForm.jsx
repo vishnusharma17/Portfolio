@@ -10,19 +10,15 @@ import {
 import { motion } from "framer-motion";
 import { useCallback, useState } from "react";
 
-import { contactInfo, socialLinks } from "../config/links";
-import { trackLinkClick } from "../services/api";
+import { useContent } from "../context/ContentContext";
+import { submitContactForm, trackLinkClick } from "../services/api";
 import "./ContactForm.css";
 
 const InfoCard = ({ icon, title, value, link }) => (
   <div className="contact-info-card">
     <div className="contact-icon">{icon}</div>
     <h3>{title}</h3>
-    {link ? (
-      <a href={link}>{value}</a>
-    ) : (
-      <span>{value}</span>
-    )}
+    {link ? <a href={link}>{value}</a> : <span>{value}</span>}
   </div>
 );
 
@@ -30,8 +26,8 @@ const SocialLink = ({ icon, label, url, onClick }) => (
   <a
     className="social-link"
     href={url}
-    target={url.startsWith("http") ? "_blank" : undefined}
-    rel={url.startsWith("http") ? "noopener noreferrer" : undefined}
+    target={url?.startsWith("http") ? "_blank" : undefined}
+    rel={url?.startsWith("http") ? "noopener noreferrer" : undefined}
     onClick={onClick}
   >
     <span className="social-icon">{icon}</span>
@@ -56,6 +52,10 @@ const Field = ({ label, name, value, error, onChange, type = "text" }) => (
 );
 
 const ContactForm = () => {
+  const { content } = useContent();
+  const contact = content?.contact || {};
+  const social = content?.social || {};
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -70,64 +70,34 @@ const ContactForm = () => {
 
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    setErrors((prev) =>
-      prev[name] ? { ...prev, [name]: "" } : prev
-    );
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => (prev[name] ? { ...prev, [name]: "" } : prev));
   }, []);
 
   const validate = () => {
     const newErrors = {};
-
-    if (!formData.firstName.trim())
-      newErrors.firstName = "First name required";
-
-    if (!formData.lastName.trim())
-      newErrors.lastName = "Last name required";
-
+    if (!formData.firstName.trim()) newErrors.firstName = "First name required";
+    if (!formData.lastName.trim()) newErrors.lastName = "Last name required";
     if (!formData.email.trim()) {
       newErrors.email = "Email required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Enter a valid email";
     }
-
-    if (!formData.subject.trim())
-      newErrors.subject = "Subject required";
-
-    if (!formData.message.trim())
-      newErrors.message = "Message required";
-
+    if (!formData.subject.trim()) newErrors.subject = "Subject required";
+    if (!formData.message.trim()) newErrors.message = "Message required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validate()) return;
 
     setIsSubmitting(true);
     setSubmitStatus(null);
 
     try {
-      const fullName = `${formData.firstName} ${formData.lastName}`.trim();
-      const body = [
-        `Name: ${fullName}`,
-        `Email: ${formData.email}`,
-        "",
-        formData.message,
-      ].join("\n");
-
-      const mailto = `mailto:${contactInfo.email}?subject=${encodeURIComponent(
-        formData.subject
-      )}&body=${encodeURIComponent(body)}`;
-
-      window.location.href = mailto;
+      await submitContactForm(formData);
       setSubmitStatus("success");
       setFormData({
         firstName: "",
@@ -152,59 +122,54 @@ const ContactForm = () => {
       <div className="contact-left">
         <h2>Get In Touch</h2>
         <p className="contact-lead">
-          Prefer email? Reach out directly or use the form — it opens your mail
-          app with the message ready.
+          Send a message through the form. If the API is offline, your email app
+          opens instead.
         </p>
 
         <div className="contact-info-grid">
           <InfoCard
             icon={<FaPhone />}
             title="Phone"
-            value={contactInfo.phone}
-            link={socialLinks.phone}
+            value={contact.phone}
+            link={social.phone}
           />
-
           <InfoCard
             icon={<FaEnvelope />}
             title="Email"
-            value={contactInfo.email}
-            link={socialLinks.email}
+            value={contact.email}
+            link={social.email}
           />
-
           <InfoCard
             icon={<FaMapMarkerAlt />}
             title="Location"
-            value={contactInfo.location}
+            value={contact.location}
           />
-
           <InfoCard
             icon={<FaClock />}
             title="Available"
-            value={contactInfo.availability}
+            value={contact.availability}
           />
         </div>
 
         <div className="social-links-contact">
           <h3>Follow Me</h3>
-
           <div className="social-icons">
-            <SocialLink
-              icon={<FaGithub />}
-              label="GitHub"
-              url={socialLinks.github}
-              onClick={() =>
-                handleSocialClick("github", socialLinks.github)
-              }
-            />
-
-            <SocialLink
-              icon={<FaLinkedin />}
-              label="LinkedIn"
-              url={socialLinks.linkedin}
-              onClick={() =>
-                handleSocialClick("linkedin", socialLinks.linkedin)
-              }
-            />
+            {social.github && (
+              <SocialLink
+                icon={<FaGithub />}
+                label="GitHub"
+                url={social.github}
+                onClick={() => handleSocialClick("github", social.github)}
+              />
+            )}
+            {social.linkedin && (
+              <SocialLink
+                icon={<FaLinkedin />}
+                label="LinkedIn"
+                url={social.linkedin}
+                onClick={() => handleSocialClick("linkedin", social.linkedin)}
+              />
+            )}
           </div>
         </div>
       </div>
@@ -219,7 +184,6 @@ const ContactForm = () => {
               error={errors.firstName}
               onChange={handleChange}
             />
-
             <Field
               label="Last Name"
               name="lastName"
@@ -262,19 +226,16 @@ const ContactForm = () => {
 
           <div className="btn">
             <button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Opening..." : "Send Message"}
+              {isSubmitting ? "Sending..." : "Send Message"}
             </button>
           </div>
 
           {submitStatus === "success" && (
-            <p className="success-message">
-              Your email app should open with the message ready.
-            </p>
+            <p className="success-message">Message sent successfully.</p>
           )}
-
           {submitStatus === "error" && (
             <p className="error-message-box">
-              Could not open mail. Email me at {contactInfo.email}.
+              Failed to send. Email me at {contact.email}.
             </p>
           )}
         </motion.form>

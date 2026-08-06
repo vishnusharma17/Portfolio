@@ -1,40 +1,20 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
-import { FaCode, FaLaptopCode, FaRocket, FaStar } from "react-icons/fa";
+import { useContent } from "../context/ContentContext";
+import { getIcon } from "../utils/iconMap";
 import "./Stats.css";
 
 const Stats = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
-
-  const stats = [
-    {
-      number: 5,
-      label: "Projects Completed",
-      icon: FaRocket,
-    },
-    {
-      number: 5,
-      label: "Technologies Mastered",
-      icon: FaLaptopCode,
-    },
-    {
-      number: 50,
-      label: "Code Commits",
-      icon: FaCode,
-    },
-    {
-      number: 6,
-      label: "Months Experience",
-      icon: FaStar,
-    },
-  ];
+  const { content } = useContent();
+  const stats = content?.stats || [];
 
   return (
     <section ref={ref} className="stats-section">
       <div className="stats-container">
         {stats.map((stat, index) => {
-          const Icon = stat.icon;
+          const Icon = getIcon(stat.icon);
 
           return (
             <motion.div

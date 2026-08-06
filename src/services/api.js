@@ -1,98 +1,125 @@
-// API service for backend communication
+const API_ROOT = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '')
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.emailjs.com/api/v1.0/email/send'
+function staticContentUrl() {
+  const base = import.meta.env.BASE_URL || '/'
+  return `${base}content.json`.replace(/([^:]\/)\/+/g, '$1')
+}
 
-// EmailJS configuration (you can replace this with your own backend)
-const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || 'service_portfolio'
-const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'template_portfolio'
-const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || 'your_public_key'
+async function loadStaticContent() {
+  const response = await fetch(staticContentUrl(), { cache: 'no-store' })
+  if (!response.ok) {
+    throw new Error('Failed to load content.json')
+  }
+  return response.json()
+}
+
+async function request(path, options = {}) {
+  const { headers: customHeaders, signal, ...rest } = options
+  const response = await fetch(`${API_ROOT}${path}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(customHeaders || {}),
+    },
+    signal,
+    ...rest,
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.error || errorData.message || 'Request failed')
+  }
+
+  return response.json()
+}
 
 /**
- * Submit contact form
- * @param {Object} formData - Form data object
- * @returns {Promise<Object>} Response object
+ * Local (API up): prefer live API
+ * Local (API down) / GitHub Pages: fall back to content.json
+ * Production without VITE_API_URL: static first (avoids noisy 404s on GH Pages)
  */
-export const submitContactForm = async (formData) => {
-  try {
-    // Option 1: Using EmailJS (for frontend-only solution)
-    if (EMAILJS_PUBLIC_KEY && EMAILJS_PUBLIC_KEY !== 'your_public_key') {
-      const response = await fetch(API_BASE_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          service_id: EMAILJS_SERVICE_ID,
-          template_id: EMAILJS_TEMPLATE_ID,
-          user_id: EMAILJS_PUBLIC_KEY,
-          template_params: {
-            from_name: `${formData.firstName} ${formData.lastName}`,
-            from_email: formData.email,
-            subject: formData.subject,
-            message: formData.message,
-            to_email: 'vishnusharma983j@gmail.com',
-          },
-        }),
-      })
+export async function fetchContent() {
+  const preferStatic =
+    import.meta.env.PROD && !import.meta.env.VITE_API_URL
 
-      if (!response.ok) {
-        throw new Error('Failed to send message')
-      }
-
-      return { success: true, message: 'Message sent successfully!' }
+  if (preferStatic) {
+    try {
+      return await loadStaticContent()
+    } catch {
+      // If a live API is somehow available, try it
+      return request('/content')
     }
+  }
 
-    // Option 2: Using custom backend API
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000/api/contact'
-    
-    const response = await fetch(backendUrl, {
+  try {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 1200)
+    try {
+      return await request('/content', { signal: controller.signal })
+    } finally {
+      clearTimeout(timer)
+    }
+  } catch {
+    return loadStaticContent()
+  }
+}
+
+export async function saveContent(content, adminKey) {
+  return request('/content', {
+    method: 'PUT',
+    headers: { 'x-admin-key': adminKey },
+    body: JSON.stringify(content),
+  })
+}
+
+export async function submitContactForm(formData) {
+  try {
+    return await request('/contact', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(formData),
     })
+  } catch {
+    const body = [
+      `Name: ${formData.firstName} ${formData.lastName}`,
+      `Email: ${formData.email}`,
+      '',
+      formData.message,
+    ].join('\n')
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.message || 'Failed to send message')
-    }
+    const mailto = `mailto:vishnusharma983j@gmail.com?subject=${encodeURIComponent(
+      formData.subject
+    )}&body=${encodeURIComponent(body)}`
 
-    const data = await response.json()
-    return { success: true, message: data.message || 'Message sent successfully!' }
-  } catch (error) {
-    console.error('Contact form error:', error)
-    
-    // Fallback: Log to console and show success (for development)
-    if (import.meta.env.DEV) {
-      console.log('Form Data:', formData)
-      return { success: true, message: 'Message logged (development mode)' }
-    }
-    
-    throw new Error(error.message || 'Something went wrong. Please try again later.')
+    window.location.href = mailto
+    return { success: true, message: 'Opened email client', fallback: true }
   }
 }
 
-/**
- * Track link clicks (analytics)
- * @param {string} linkType - Type of link (github, linkedin, etc.)
- * @param {string} url - URL that was clicked
- */
+export async function uploadFile(file, adminKey) {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const response = await fetch(`${API_ROOT}/upload`, {
+    method: 'POST',
+    headers: { 'x-admin-key': adminKey },
+    body: formData,
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.error || 'Upload failed')
+  }
+
+  return response.json()
+}
+
+export async function fetchMessages(adminKey) {
+  return request('/messages', {
+    headers: { 'x-admin-key': adminKey },
+  })
+}
+
 export const trackLinkClick = async (linkType, url) => {
-  try {
-    // You can integrate with analytics service here
-    if (import.meta.env.DEV) {
-      console.log(`Link clicked: ${linkType} - ${url}`)
-    }
-    
-    // Example: Send to analytics API
-    // await fetch('/api/analytics/track', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ type: linkType, url, timestamp: Date.now() })
-    // })
-  } catch (error) {
-    console.error('Analytics error:', error)
+  if (import.meta.env.DEV) {
+    console.log(`Link clicked: ${linkType} - ${url}`)
   }
 }
-

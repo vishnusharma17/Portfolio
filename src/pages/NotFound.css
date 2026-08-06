@@ -1,0 +1,47 @@
+.not-found {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 12px;
+  padding: 120px 20px 80px;
+}
+
+.not-found-code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.not-found h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  letter-spacing: -0.03em;
+}
+
+.not-found p {
+  color: var(--muted);
+}
+
+.not-found-link {
+  margin-top: 12px;
+  padding: 12px 24px;
+  border: 1px solid var(--white);
+  background: var(--white);
+  color: var(--bg);
+  text-decoration: none;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: all 0.25s ease;
+}
+
+.not-found-link:hover {
+  background: transparent;
+  color: var(--white);
+}

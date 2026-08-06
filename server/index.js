@@ -12,9 +12,12 @@ const DATA_FILE = path.join(__dirname, 'data', 'content.json')
 const MESSAGES_FILE = path.join(__dirname, 'data', 'messages.json')
 const UPLOAD_DIR = path.join(__dirname, 'uploads')
 const PUBLIC_IMAGES = path.join(ROOT, 'public', 'images')
+const DOCS_DIR = path.join(ROOT, 'docs')
 
 const PORT = process.env.PORT || 4000
 const ADMIN_SECRET = process.env.ADMIN_SECRET || 'vishnu-admin-2026'
+const SERVE_FRONTEND =
+  process.env.SERVE_FRONTEND === 'true' || process.env.NODE_ENV === 'production'
 
 const app = express()
 app.use(cors())
@@ -50,10 +53,23 @@ async function readContent() {
 }
 
 async function writeContent(data) {
-  await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2))
-  // Keep a public fallback copy for static hosting
-  const publicCopy = path.join(ROOT, 'public', 'content.json')
-  await fs.writeFile(publicCopy, JSON.stringify(data, null, 2))
+  const json = JSON.stringify(data, null, 2)
+  await fs.writeFile(DATA_FILE, json)
+
+  // Keep fallbacks in sync for Vite public + GitHub Pages docs
+  const targets = [
+    path.join(ROOT, 'public', 'content.json'),
+    path.join(DOCS_DIR, 'content.json'),
+  ]
+
+  for (const target of targets) {
+    try {
+      await fs.mkdir(path.dirname(target), { recursive: true })
+      await fs.writeFile(target, json)
+    } catch (err) {
+      console.warn(`Could not write ${target}:`, err.message)
+    }
+  }
 }
 
 function requireAdmin(req, res, next) {
@@ -65,7 +81,7 @@ function requireAdmin(req, res, next) {
 }
 
 app.get('/api/health', (_req, res) => {
-  res.json({ ok: true })
+  res.json({ ok: true, serveFrontend: SERVE_FRONTEND })
 })
 
 app.get('/api/content', async (_req, res) => {
@@ -129,7 +145,7 @@ app.get('/api/messages', requireAdmin, async (_req, res) => {
   try {
     const raw = await fs.readFile(MESSAGES_FILE, 'utf8').catch(() => '[]')
     res.json(JSON.parse(raw))
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Failed to load messages' })
   }
 })
@@ -143,6 +159,15 @@ app.post('/api/upload', requireAdmin, upload.single('file'), async (req, res) =>
     const publicPath = path.join(PUBLIC_IMAGES, req.file.filename)
     await fs.copyFile(req.file.path, publicPath)
 
+    // Also copy into docs for production/live static hosting
+    try {
+      const docsImages = path.join(DOCS_DIR, 'images')
+      await fs.mkdir(docsImages, { recursive: true })
+      await fs.copyFile(req.file.path, path.join(docsImages, req.file.filename))
+    } catch {
+      // docs may not exist before first build
+    }
+
     res.json({
       success: true,
       path: `images/${req.file.filename}`,
@@ -154,7 +179,32 @@ app.post('/api/upload', requireAdmin, upload.single('file'), async (req, res) =>
   }
 })
 
+// Live server: serve built frontend from docs/ under /Portfolio/
+async function setupFrontend() {
+  if (!SERVE_FRONTEND) return
+
+  try {
+    await fs.access(path.join(DOCS_DIR, 'index.html'))
+  } catch {
+    console.warn('docs/ not built yet. Run `npm run build` before SERVE_FRONTEND=true')
+    return
+  }
+
+  app.use('/Portfolio', express.static(DOCS_DIR, { index: 'index.html' }))
+  app.get(['/Portfolio', '/Portfolio/*'], (req, res) => {
+    res.sendFile(path.join(DOCS_DIR, 'index.html'))
+  })
+  app.get('/', (_req, res) => {
+    res.redirect('/Portfolio/')
+  })
+}
+
+await setupFrontend()
+
 app.listen(PORT, () => {
   console.log(`Portfolio API running on http://localhost:${PORT}`)
-  console.log(`Admin key: set ADMIN_SECRET (default: ${ADMIN_SECRET})`)
+  if (SERVE_FRONTEND) {
+    console.log(`Frontend: http://localhost:${PORT}/Portfolio/`)
+  }
+  console.log(`Admin key default: ${ADMIN_SECRET}`)
 })

@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useContent } from "../context/ContentContext";
 import "./Header.css";
 
 const Header = () => {
@@ -9,19 +10,19 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { content } = useContent();
 
-  // Scroll detection
+  const displayName = content?.profile?.name || "Vishnu Sharma";
+  const [first, ...rest] = displayName.split(" ");
+  const last = rest.join(" ");
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
     };
 
-    window.addEventListener("scroll", handleScroll, {
-      passive: true,
-    });
-
-    return () =>
-      window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const toggleMenu = useCallback(() => {
@@ -32,37 +33,53 @@ const Header = () => {
     setIsMenuOpen(false);
   }, []);
 
-  // NAV CONFIG
   const navLinks = useMemo(
     () => [
-      { path: "/", label: "Home" },
-      { path: "about", label: "About", scroll: true },
-      { path: "skills", label: "Skills", scroll: true },
-      { path: "/projects", label: "Projects" },
-      { path: "contact", label: "Contact", scroll: true },
+      { path: "/", label: "Home", type: "route" },
+      { path: "about", label: "About", type: "section" },
+      { path: "skills", label: "Skills", type: "section" },
+      { path: "/projects", label: "Projects", type: "route" },
+      { path: "contact", label: "Contact", type: "section" },
     ],
     []
   );
 
-  // HANDLE SECTION SCROLL
- const handleNavClick = (e, link) => {
-  if (!link.scroll) {
+  const scrollToSection = (sectionId) => {
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  const handleNavClick = (e, link) => {
+    if (link.type !== "section") {
+      closeMenu();
+      return;
+    }
+
+    e.preventDefault();
+
+    const onHome =
+      location.pathname === "/" || location.pathname === "";
+
+    if (onHome) {
+      scrollToSection(link.path);
+      navigate({ pathname: "/", hash: link.path }, { replace: true });
+    } else {
+      navigate({ pathname: "/", hash: link.path });
+    }
+
     closeMenu();
-    return;
-  }
+  };
 
-  e.preventDefault();
-
-  navigate("/", {
-    state: { scrollTo: link.path },
-  });
-
-  closeMenu();
-};
-
-  // Active highlight only for route pages
-  const isActive = (path) => {
-    return location.pathname === path && !path.includes("#");
+  const isActive = (link) => {
+    if (link.type === "route") {
+      return location.pathname === link.path;
+    }
+    return (
+      (location.pathname === "/" || location.pathname === "") &&
+      location.hash === `#${link.path}`
+    );
   };
 
   return (
@@ -73,12 +90,19 @@ const Header = () => {
       transition={{ duration: 0.5 }}
     >
       <div className="header-container">
-        {/* LOGO */}
-        <Link to="/" className="logo" onClick={closeMenu}>
-          Vishnu <span>Sharma</span>
+        <Link
+          to="/"
+          className="logo"
+          onClick={() => {
+            closeMenu();
+            if (location.pathname === "/") {
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+          }}
+        >
+          {first} {last ? <span>{last}</span> : null}
         </Link>
 
-        {/* MOBILE BUTTON */}
         <button
           className="menu-btn"
           onClick={toggleMenu}
@@ -87,7 +111,6 @@ const Header = () => {
           {isMenuOpen ? <FaTimes /> : <FaBars />}
         </button>
 
-        {/* MOBILE MENU */}
         <AnimatePresence>
           {isMenuOpen && (
             <motion.ul
@@ -100,15 +123,9 @@ const Header = () => {
               {navLinks.map((link) => (
                 <li key={link.label}>
                   <Link
-                    to={link.scroll ? "/" : link.path}
-                    onClick={(e) =>
-                      handleNavClick(e, link)
-                    }
-                    className={
-                      isActive(link.path)
-                        ? "active"
-                        : ""
-                    }
+                    to={link.type === "section" ? { pathname: "/", hash: link.path } : link.path}
+                    onClick={(e) => handleNavClick(e, link)}
+                    className={isActive(link) ? "active" : ""}
                   >
                     {link.label}
                   </Link>
@@ -118,20 +135,13 @@ const Header = () => {
           )}
         </AnimatePresence>
 
-        {/* DESKTOP */}
         <ul className="nav-links desktop">
           {navLinks.map((link) => (
             <li key={link.label}>
               <Link
-                to={link.scroll ? "/" : link.path}
-                onClick={(e) =>
-                  handleNavClick(e, link)
-                }
-                className={
-                  isActive(link.path)
-                    ? "active"
-                    : ""
-                }
+                to={link.type === "section" ? { pathname: "/", hash: link.path } : link.path}
+                onClick={(e) => handleNavClick(e, link)}
+                className={isActive(link) ? "active" : ""}
               >
                 {link.label}
               </Link>

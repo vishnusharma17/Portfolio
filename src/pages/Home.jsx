@@ -1,11 +1,5 @@
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useRef } from "react";
-import {
-  FaLightbulb,
-  FaMagic,
-  FaMobileAlt,
-  FaRocket,
-} from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 
 import ContactForm from "../components/ContactForm";
@@ -13,33 +7,39 @@ import Hero from "../components/Hero";
 import ProjectCard from "../components/ProjectCard";
 import Skills from "../components/Skills";
 import Stats from "../components/Stats";
-
-import { projects } from "../data/projects";
+import { useContent } from "../context/ContentContext";
+import { getIcon } from "../utils/iconMap";
 import "./Home.css";
 
 const Home = () => {
   const contactRef = useRef(null);
-  const featuredProjects = useMemo(
-    () => projects.slice(0, 3),
-    []
-  );
+  const { content } = useContent();
+  const location = useLocation();
 
-  const { state } = useLocation();
+  const featuredProjects = useMemo(() => {
+    const projects = content?.projects || [];
+    const featured = projects.filter((p) => p.featured);
+    return (featured.length ? featured : projects).slice(0, 3);
+  }, [content]);
+
+  const about = content?.about || {};
+  const miniStats = content?.miniStats || [];
 
   useEffect(() => {
-    if (state?.scrollTo) {
-      const el = document.getElementById(state.scrollTo);
+    const sectionId =
+      (location.hash && location.hash.replace("#", "")) ||
+      location.state?.scrollTo;
 
-      if (el) {
-        setTimeout(() => {
-          el.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
-        }, 150);
-      }
-    }
-  }, [state]);
+    if (!sectionId) return;
+
+    const timer = setTimeout(() => {
+      document
+        .getElementById(sectionId)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 120);
+
+    return () => clearTimeout(timer);
+  }, [location.hash, location.state]);
 
   return (
     <div className="home">
@@ -63,99 +63,52 @@ const Home = () => {
             <div className="about-main-content">
               <div className="about-text">
                 <p className="about-intro">
-                  I am{" "}
-                  <span className="highlight">Vishnu Sharma</span> — a
-                  passionate Web Developer with expertise in building modern,
-                  responsive web applications.
+                  {about.intro?.includes("Vishnu Sharma") ? (
+                    <>
+                      {about.intro.split("Vishnu Sharma")[0]}
+                      <span className="highlight">Vishnu Sharma</span>
+                      {about.intro.split("Vishnu Sharma")[1]}
+                    </>
+                  ) : (
+                    about.intro
+                  )}
                 </p>
 
-                <p>
-                  With a strong foundation in frontend technologies like React,
-                  JavaScript, and modern CSS, I bring ideas to life through
-                  clean code and thoughtful design.
-                </p>
-
-                <p>
-                  When I am not coding, I enjoy exploring new design trends,
-                  contributing to open-source projects, and sharing knowledge
-                  with the developer community.
-                </p>
+                {(about.paragraphs || []).map((paragraph) => (
+                  <p key={paragraph}>{paragraph}</p>
+                ))}
               </div>
 
               <div className="about-stats-mini">
-                <div className="stat-mini">
-                  <div className="stat-number-mini">6+</div>
-                  <div className="stat-label-mini">Months Experience</div>
-                </div>
-
-                <div className="stat-mini">
-                  <div className="stat-number-mini">5+</div>
-                  <div className="stat-label-mini">Projects Done</div>
-                </div>
-
-                <div className="stat-mini">
-                  <div className="stat-number-mini">5+</div>
-                  <div className="stat-label-mini">Technologies</div>
-                </div>
+                {miniStats.map((stat) => (
+                  <div className="stat-mini" key={stat.label}>
+                    <div className="stat-number-mini">{stat.number}</div>
+                    <div className="stat-label-mini">{stat.label}</div>
+                  </div>
+                ))}
               </div>
             </div>
 
             <div className="about-features">
-              <motion.div
-                className="feature-item"
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.1 }}
-              >
-                <span className="feature-icon">
-                  <FaMagic aria-hidden="true" />
-                </span>
-                <h4>Modern Design</h4>
-                <p>Creating clear, intuitive interfaces with lasting polish</p>
-              </motion.div>
-
-              <motion.div
-                className="feature-item"
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.2 }}
-              >
-                <span className="feature-icon">
-                  <FaRocket aria-hidden="true" />
-                </span>
-                <h4>Fast Performance</h4>
-                <p>Optimized code for quick load times and smooth UX</p>
-              </motion.div>
-
-              <motion.div
-                className="feature-item"
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.3 }}
-              >
-                <span className="feature-icon">
-                  <FaMobileAlt aria-hidden="true" />
-                </span>
-                <h4>Responsive</h4>
-                <p>Consistent experience across phones, tablets, and desktop</p>
-              </motion.div>
-
-              <motion.div
-                className="feature-item"
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.4 }}
-              >
-                <span className="feature-icon">
-                  <FaLightbulb aria-hidden="true" />
-                </span>
-                <h4>Creative Solutions</h4>
-                <p>Practical approaches to complex product problems</p>
-              </motion.div>
+              {(about.highlights || []).map((feature, index) => {
+                const Icon = getIcon(feature.icon);
+                return (
+                  <motion.div
+                    key={feature.title}
+                    className="feature-item"
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: 0.1 * (index + 1) }}
+                  >
+                    <span className="feature-icon">
+                      <Icon aria-hidden="true" />
+                    </span>
+                    <h4>{feature.title}</h4>
+                    <p>{feature.description}</p>
+                  </motion.div>
+                );
+              })}
             </div>
           </motion.div>
         </div>
@@ -177,7 +130,7 @@ const Home = () => {
         <div className="projects-container">
           {featuredProjects.map((project, index) => (
             <ProjectCard
-              key={project.name}
+              key={project.id || project.name}
               project={project}
               index={index}
             />
@@ -202,11 +155,7 @@ const Home = () => {
         </motion.div>
       </section>
 
-      <section
-        id="contact"
-        ref={contactRef}
-        className="contact-section"
-      >
+      <section id="contact" ref={contactRef} className="contact-section">
         <motion.div
           className="contact-heading"
           initial={{ opacity: 0, y: 20 }}

@@ -5,22 +5,29 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "predev": "npm --prefix server install --prefer-offline --no-audit --no-fund",
+    "dev": "concurrently -k -n api,web -c magenta,cyan \"npm run server\" \"npm run client\"",
+    "client": "vite",
+    "server": "npm --prefix server run dev",
+    "prebuild": "node -e \"const fs=require('fs');fs.copyFileSync('server/data/content.json','public/content.json')\"",
     "build": "vite build",
     "preview": "vite preview",
+    "start": "npm run build && SERVE_FRONTEND=true NODE_ENV=production npm run start:api",
+    "start:api": "npm --prefix server start",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
+    "framer-motion": "^10.16.16",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.20.0",
-    "framer-motion": "^10.16.16",
-    "react-icons": "^4.12.0"
+    "react-icons": "^4.12.0",
+    "react-router-dom": "^6.20.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
     "@vitejs/plugin-react": "^4.2.1",
+    "concurrently": "^10.0.4",
     "eslint": "^8.55.0",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",

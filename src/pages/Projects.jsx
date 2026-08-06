@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useMemo, useState } from "react";
 import ProjectCard from "../components/ProjectCard";
-import { projects } from "../data/projects";
+import { useContent } from "../context/ContentContext";
 import "./Projects.css";
 
 const ALLOWED_TECH = [
@@ -15,24 +15,26 @@ const ALLOWED_TECH = [
   "JavaScript",
   "Tailwind CSS",
   "Bootstrap",
+  "MySQL",
 ];
 
 const Projects = () => {
   const [filter, setFilter] = useState("All");
+  const { content } = useContent();
+  const projects = useMemo(
+    () => content?.projects || [],
+    [content?.projects]
+  );
 
   const allTags = useMemo(() => {
-    const techs = projects.flatMap((p) => p.technologies);
-
-    return [
-      "All",
-      ...new Set(techs.filter((t) => ALLOWED_TECH.includes(t))),
-    ];
-  }, []);
+    const techs = projects.flatMap((p) => p.technologies || []);
+    return ["All", ...new Set(techs.filter((t) => ALLOWED_TECH.includes(t)))];
+  }, [projects]);
 
   const filteredProjects =
     filter === "All"
       ? projects
-      : projects.filter((p) => p.technologies.includes(filter));
+      : projects.filter((p) => (p.technologies || []).includes(filter));
 
   return (
     <div className="projects-page">
@@ -67,7 +69,7 @@ const Projects = () => {
         {filteredProjects.length > 0 ? (
           filteredProjects.map((project, index) => (
             <ProjectCard
-              key={project.name}
+              key={project.id || project.name}
               project={project}
               index={index}
             />
