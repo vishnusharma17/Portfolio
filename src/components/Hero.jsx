@@ -1,10 +1,16 @@
 import { motion } from "framer-motion";
 import { useCallback } from "react";
+import {
+  FaArrowDown,
+  FaCode,
+  FaEnvelope,
+  FaGithub,
+  FaLinkedin,
+} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { resumeLink, socialLinks } from "../config/links";
 import { trackLinkClick } from "../services/api";
 import { asset } from "../utils/assets";
-
 
 import "./Hero.css";
 
@@ -22,64 +28,59 @@ const Hero = () => {
 
   return (
     <section className="hero-section">
+      <div
+        className="hero-media"
+        style={{ backgroundImage: `url(${asset("images/real.jpeg")})` }}
+        aria-hidden="true"
+      />
+      <div className="hero-overlay" aria-hidden="true" />
+
       <div className="hero-container">
-        {/* LEFT CONTENT */}
         <motion.div
           className="hero-content"
-          initial={{ opacity: 0, y: 50 }}
+          initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <motion.div
-            className="hero-badge"
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, type: "spring" }}
+          <motion.p
+            className="hero-label"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.15 }}
           >
-            👋 Full-Stack Web Developer
-          </motion.div>
+            <FaCode aria-hidden="true" /> Full-Stack Web Developer
+          </motion.p>
 
           <motion.h1
             className="hero-title"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.25 }}
           >
-            Hi, I'm <span className="gradient-text">Vishnu Sharma</span>
+            Vishnu Sharma
           </motion.h1>
-
-          <motion.h2
-            className="hero-subtitle"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            I Build Scalable & High-Performance Web Applications
-          </motion.h2>
 
           <motion.p
             className="hero-description"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
+            transition={{ delay: 0.4 }}
           >
-            Specialized in React, Next.js, Node.js, and MongoDB.  
-            I focus on writing clean architecture, optimized APIs, and
-            production-ready systems that scale.
+            Building clean, scalable web applications with React, Node.js, and
+            modern tooling.
           </motion.p>
 
-          {/* CTA */}
           <motion.div
             className="hero-buttons"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
+            transition={{ delay: 0.55 }}
           >
             <motion.button
               className="btn-primary"
               onClick={() => navigate("/projects")}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
               View Projects
             </motion.button>
@@ -87,83 +88,63 @@ const Hero = () => {
             <motion.button
               className="btn-secondary"
               onClick={handleResumeClick}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
               Download Resume
             </motion.button>
           </motion.div>
 
-          {/* SOCIAL */}
           <motion.div
             className="hero-social"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
+            transition={{ delay: 0.7 }}
           >
             <a
               href={socialLinks.github}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() =>
-                handleSocialClick("github", socialLinks.github)
-              }
+              aria-label="GitHub"
+              onClick={() => handleSocialClick("github", socialLinks.github)}
             >
-              GitHub
+              <FaGithub />
             </a>
-
             <a
               href={socialLinks.linkedin}
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="LinkedIn"
               onClick={() =>
                 handleSocialClick("linkedin", socialLinks.linkedin)
               }
             >
-              LinkedIn
+              <FaLinkedin />
             </a>
-
             <a
               href={socialLinks.email}
-              onClick={() =>
-                handleSocialClick("email", socialLinks.email)
-              }
+              aria-label="Email"
+              onClick={() => handleSocialClick("email", socialLinks.email)}
             >
-              Email
+              <FaEnvelope />
             </a>
           </motion.div>
         </motion.div>
-
-        {/* RIGHT IMAGE */}
-        <motion.div
-          className="hero-image"
-          initial={{ opacity: 0, x: 60 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-        >
-          <div className="image-wrapper dev-style">
-           
-          <img src={asset("images/real.jpeg")} />
-            <div className="image-glow"></div>
-            <div className="image-frame"></div>
-          </div>
-        </motion.div>
       </div>
 
-      {/* SCROLL */}
       <motion.div
         className="scroll-indicator"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1 }}
       >
-        <span>Scroll Down</span>
+        <span>Scroll</span>
         <motion.div
           className="scroll-arrow"
-          animate={{ y: [0, 10, 0] }}
+          animate={{ y: [0, 8, 0] }}
           transition={{ duration: 1.5, repeat: Infinity }}
         >
-          ↓
+          <FaArrowDown />
         </motion.div>
       </motion.div>
     </section>

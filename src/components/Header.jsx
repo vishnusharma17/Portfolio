@@ -75,7 +75,7 @@ const Header = () => {
       <div className="header-container">
         {/* LOGO */}
         <Link to="/" className="logo" onClick={closeMenu}>
-          Vishnu <span>sharma</span>
+          Vishnu <span>Sharma</span>
         </Link>
 
         {/* MOBILE BUTTON */}

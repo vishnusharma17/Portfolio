@@ -1,6 +1,22 @@
 import { memo } from 'react'
 import { motion } from 'framer-motion'
+import { FaExternalLinkAlt, FaGithub } from 'react-icons/fa'
 import './ProjectCard.css'
+
+const isValidProjectUrl = (url) => {
+  if (!url || typeof url !== 'string') return false
+  const lower = url.toLowerCase()
+  if (lower.includes('yourusername')) return false
+  if (lower.includes('-demo.com') || lower.includes('demo.com')) return false
+  if (lower.includes('your-ecommerce') || lower.includes('your-bakery')) return false
+  if (lower.includes('crime-data-demo')) return false
+  try {
+    const parsed = new URL(url)
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
 
 const ProjectCard = memo(({ project, index, className = '' }) => {
   const cardVariants = {
@@ -16,6 +32,9 @@ const ProjectCard = memo(({ project, index, className = '' }) => {
     },
   }
 
+  const hasGithub = isValidProjectUrl(project.github)
+  const hasLiveDemo = isValidProjectUrl(project.liveDemo)
+
   return (
     <motion.div
       className={`project-card ${className}`}
@@ -23,7 +42,7 @@ const ProjectCard = memo(({ project, index, className = '' }) => {
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, margin: "-100px" }}
-      whileHover={{ scale: 1.02 }}
+      whileHover={{ scale: 1.01 }}
     >
       <div className="p-left">
         <div className="p-left-inner">
@@ -36,44 +55,61 @@ const ProjectCard = memo(({ project, index, className = '' }) => {
               </span>
             ))}
           </div>
-          <div className="project-links">
-            <a
-              href={project.github}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="project-link"
-            >
-              GitHub
-            </a>
+          {(hasGithub || hasLiveDemo) && (
+            <div className="project-links">
+              {hasGithub && (
+                <a
+                  href={project.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="project-link"
+                >
+                  <FaGithub aria-hidden="true" /> GitHub
+                </a>
+              )}
+              {hasLiveDemo && (
+                <a
+                  href={project.liveDemo}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="project-link primary"
+                >
+                  <FaExternalLinkAlt aria-hidden="true" /> Live Demo
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="p-right">
+        <div className="p-image">
+          {hasLiveDemo ? (
             <a
               href={project.liveDemo}
               target="_blank"
               rel="noopener noreferrer"
-              className="project-link primary"
+              className="image-link"
             >
-              Live Demo
+              <img
+                src={project.image}
+                alt={project.name}
+                loading="lazy"
+                decoding="async"
+              />
+              <div className="image-overlay">
+                <span>View Project</span>
+              </div>
             </a>
-          </div>
-        </div>
-      </div>
-      <div className="p-right">
-          <div className="p-image">
-          <a
-            href={project.liveDemo}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="image-link"
-          >
-            <img 
-              src={project.image} 
-              alt={project.name}
-              loading="lazy"
-              decoding="async"
-            />
-            <div className="image-overlay">
-              <span>View Project</span>
+          ) : (
+            <div className="image-static">
+              <img
+                src={project.image}
+                alt={project.name}
+                loading="lazy"
+                decoding="async"
+              />
             </div>
-          </a>
+          )}
         </div>
       </div>
     </motion.div>
@@ -83,4 +119,3 @@ const ProjectCard = memo(({ project, index, className = '' }) => {
 ProjectCard.displayName = 'ProjectCard'
 
 export default ProjectCard
-

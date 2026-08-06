@@ -4,50 +4,38 @@ import ProjectCard from "../components/ProjectCard";
 import { projects } from "../data/projects";
 import "./Projects.css";
 
+const ALLOWED_TECH = [
+  "React",
+  "Next.js",
+  "Node.js",
+  "Express",
+  "MongoDB",
+  "HTML",
+  "CSS",
+  "JavaScript",
+  "Tailwind CSS",
+  "Bootstrap",
+];
+
 const Projects = () => {
   const [filter, setFilter] = useState("All");
 
-  // 👉 ONLY tech-based filters (from technologies)
-  const allowedTech = [
-    "React",
-    "Next.js",
-    "Node.js",
-    "Express",
-    "MongoDB",
-    "HTML",
-    "CSS",
-    "JavaScript",
-    "Tailwind CSS",
-    "Bootstrap",
-  ];
-
-  // Build filter buttons safely
   const allTags = useMemo(() => {
-    const techs = projects.flatMap(
-      (p) => p.technologies
-    );
+    const techs = projects.flatMap((p) => p.technologies);
 
     return [
       "All",
-      ...new Set(
-        techs.filter((t) =>
-          allowedTech.includes(t)
-        )
-      ),
+      ...new Set(techs.filter((t) => ALLOWED_TECH.includes(t))),
     ];
   }, []);
 
-  // Filter logic
   const filteredProjects =
     filter === "All"
       ? projects
-      : projects.filter((p) =>
-          p.technologies.includes(filter)
-        );
+      : projects.filter((p) => p.technologies.includes(filter));
 
   return (
     <div className="projects-page">
-      {/* HEADER */}
       <motion.div
         className="projects-header"
         initial={{ opacity: 0, y: -20 }}
@@ -58,7 +46,6 @@ const Projects = () => {
         <p>Explore my work and projects</p>
       </motion.div>
 
-      {/* FILTERS */}
       <motion.div
         className="filter-container"
         initial={{ opacity: 0 }}
@@ -68,9 +55,7 @@ const Projects = () => {
         {allTags.map((tag) => (
           <button
             key={tag}
-            className={`filter-btn ${
-              filter === tag ? "active" : ""
-            }`}
+            className={`filter-btn ${filter === tag ? "active" : ""}`}
             onClick={() => setFilter(tag)}
           >
             {tag}
@@ -78,32 +63,19 @@ const Projects = () => {
         ))}
       </motion.div>
 
-      {/* GRID */}
-      <motion.div
-        className="projects-grid"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-      >
-        {filteredProjects.map(
-          (project, index) => (
+      <div className="projects-grid">
+        {filteredProjects.length > 0 ? (
+          filteredProjects.map((project, index) => (
             <ProjectCard
               key={project.name}
               project={project}
               index={index}
             />
-          )
+          ))
+        ) : (
+          <p className="no-projects">No projects match this filter.</p>
         )}
-      </motion.div>
-
-      {filteredProjects.length === 0 && (
-        <div className="no-projects">
-          <p>
-            No projects found for this
-            filter.
-          </p>
-        </div>
-      )}
+      </div>
     </div>
   );
 };

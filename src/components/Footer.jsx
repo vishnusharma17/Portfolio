@@ -5,85 +5,70 @@ import {
   FaMapMarkerAlt,
   FaPhone,
 } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { contactInfo, socialLinks } from "../config/links";
 import { trackLinkClick } from "../services/api";
 import "./Footer.css";
 
 const Footer = () => {
+  const navigate = useNavigate();
+
   const handleLinkClick = (type, url) => {
     if (url) trackLinkClick(type, url);
   };
 
   const handleScrollToSection = (e, sectionId) => {
     e.preventDefault();
-    const element = document.querySelector(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    navigate("/", { state: { scrollTo: sectionId } });
   };
 
   return (
     <footer className="footer">
       <div className="footer-grid">
-        {/* CONTACT */}
         <div className="f-col">
           <h4>Contact</h4>
           <a
             href={socialLinks.phone}
-            onClick={() =>
-              handleLinkClick("phone", socialLinks.phone)
-            }
+            onClick={() => handleLinkClick("phone", socialLinks.phone)}
           >
             <FaPhone /> {contactInfo.phone}
           </a>
           <a
             href={socialLinks.email}
-            onClick={() =>
-              handleLinkClick("email", socialLinks.email)
-            }
+            onClick={() => handleLinkClick("email", socialLinks.email)}
           >
             <FaEnvelope /> {contactInfo.email}
           </a>
         </div>
 
-        {/* QUICK LINKS */}
         <div className="f-col">
           <h4>Quick Links</h4>
           <div className="q-links">
             <Link
               to="/"
               onClick={() =>
-                window.scrollTo({
-                  top: 0,
-                  behavior: "smooth",
-                })
+                window.scrollTo({ top: 0, behavior: "smooth" })
               }
             >
               Home
             </Link>
             <Link
               to="/"
-              onClick={(e) =>
-                handleScrollToSection(e, "#about")
-              }
+              onClick={(e) => handleScrollToSection(e, "about")}
             >
               About
             </Link>
             <Link to="/projects">Projects</Link>
             <Link
               to="/"
-              onClick={(e) =>
-                handleScrollToSection(e, "#contact")
-              }
+              onClick={(e) => handleScrollToSection(e, "contact")}
             >
               Contact
             </Link>
           </div>
         </div>
 
-        {/* LOCATION */}
         <div className="f-col">
           <h4>Location</h4>
           <p>
@@ -97,10 +82,7 @@ const Footer = () => {
               rel="noopener noreferrer"
               aria-label="GitHub"
               onClick={() =>
-                handleLinkClick(
-                  "github",
-                  socialLinks.github
-                )
+                handleLinkClick("github", socialLinks.github)
               }
             >
               <FaGithub />
@@ -112,10 +94,7 @@ const Footer = () => {
               rel="noopener noreferrer"
               aria-label="LinkedIn"
               onClick={() =>
-                handleLinkClick(
-                  "linkedin",
-                  socialLinks.linkedin
-                )
+                handleLinkClick("linkedin", socialLinks.linkedin)
               }
             >
               <FaLinkedin />
@@ -126,8 +105,7 @@ const Footer = () => {
 
       <div className="copyright">
         <p>
-          © {new Date().getFullYear()} Vishnu Sharma.
-          All rights reserved.
+          © {new Date().getFullYear()} Vishnu Sharma. All rights reserved.
         </p>
       </div>
     </footer>

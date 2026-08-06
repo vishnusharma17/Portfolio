@@ -5,8 +5,8 @@ const Cursor = () => {
 
   const handleMouseMove = useCallback((e) => {
     if (cursorRef.current) {
-      cursorRef.current.style.left = e.pageX + 'px'
-      cursorRef.current.style.top = e.pageY + 'px'
+      cursorRef.current.style.left = e.clientX + 'px'
+      cursorRef.current.style.top = e.clientY + 'px'
     }
   }, [])
 

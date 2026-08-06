@@ -1,6 +1,11 @@
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useRef } from "react";
-import { FaRocket } from "react-icons/fa";
+import {
+  FaLightbulb,
+  FaMagic,
+  FaMobileAlt,
+  FaRocket,
+} from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 
 import ContactForm from "../components/ContactForm";
@@ -21,12 +26,9 @@ const Home = () => {
 
   const { state } = useLocation();
 
-  // 🔥 AUTO SCROLL FROM HEADER (ANY PAGE)
   useEffect(() => {
     if (state?.scrollTo) {
-      const el = document.getElementById(
-        state.scrollTo
-      );
+      const el = document.getElementById(state.scrollTo);
 
       if (el) {
         setTimeout(() => {
@@ -41,13 +43,9 @@ const Home = () => {
 
   return (
     <div className="home">
-      {/* ================= HERO ================= */}
       <Hero />
-
-      {/* ================= STATS ================= */}
       <Stats />
 
-      {/* ================= ABOUT ================= */}
       <section id="about" className="about-section">
         <div className="about-container">
           <motion.div
@@ -65,216 +63,111 @@ const Home = () => {
             <div className="about-main-content">
               <div className="about-text">
                 <p className="about-intro">
-                  I'm{" "}
-                  <span className="highlight">
-                    Vishnu Sharma
-                  </span>{" "}
-                  — a passionate Web Developer
-                  with expertise in building
-                  modern, responsive web
-                  applications.
+                  I am{" "}
+                  <span className="highlight">Vishnu Sharma</span> — a
+                  passionate Web Developer with expertise in building modern,
+                  responsive web applications.
                 </p>
 
                 <p>
-                  With a strong foundation
-                  in frontend technologies
-                  like React, JavaScript,
-                  and modern CSS, I bring
-                  ideas to life through
-                  clean code and innovative
-                  design solutions.
+                  With a strong foundation in frontend technologies like React,
+                  JavaScript, and modern CSS, I bring ideas to life through
+                  clean code and thoughtful design.
                 </p>
 
                 <p>
-                  When I'm not coding, I
-                  enjoy exploring new
-                  design trends,
-                  contributing to
-                  open-source projects,
-                  and sharing knowledge
-                  with the developer
-                  community.
+                  When I am not coding, I enjoy exploring new design trends,
+                  contributing to open-source projects, and sharing knowledge
+                  with the developer community.
                 </p>
               </div>
 
               <div className="about-stats-mini">
                 <div className="stat-mini">
-                  <div className="stat-number-mini">
-                    6+
-                  </div>
-                  <div className="stat-label-mini">
-                    Months Experience
-                  </div>
+                  <div className="stat-number-mini">6+</div>
+                  <div className="stat-label-mini">Months Experience</div>
                 </div>
 
                 <div className="stat-mini">
-                  <div className="stat-number-mini">
-                    5+
-                  </div>
-                  <div className="stat-label-mini">
-                    Projects Done
-                  </div>
+                  <div className="stat-number-mini">5+</div>
+                  <div className="stat-label-mini">Projects Done</div>
                 </div>
 
                 <div className="stat-mini">
-                  <div className="stat-number-mini">
-                    5+
-                  </div>
-                  <div className="stat-label-mini">
-                    Technologies
-                  </div>
+                  <div className="stat-number-mini">5+</div>
+                  <div className="stat-label-mini">Technologies</div>
                 </div>
               </div>
             </div>
 
-            {/* FEATURES */}
             <div className="about-features">
               <motion.div
                 className="feature-item"
-                initial={{
-                  opacity: 0,
-                  scale: 0.85,
-                }}
-                whileInView={{
-                  opacity: 1,
-                  scale: 1,
-                }}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{
-                  duration: 0.4,
-                  delay: 0.1,
-                }}
-                whileHover={{
-                  scale: 1.1,
-                  y: -6,
-                }}
+                transition={{ duration: 0.4, delay: 0.1 }}
               >
                 <span className="feature-icon">
-                  ✨
+                  <FaMagic aria-hidden="true" />
                 </span>
                 <h4>Modern Design</h4>
-                <p>
-                  Creating visually
-                  stunning and intuitive
-                  interfaces
-                </p>
+                <p>Creating clear, intuitive interfaces with lasting polish</p>
               </motion.div>
 
               <motion.div
                 className="feature-item"
-                initial={{
-                  opacity: 0,
-                  scale: 0.85,
-                }}
-                whileInView={{
-                  opacity: 1,
-                  scale: 1,
-                }}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{
-                  duration: 0.4,
-                  delay: 0.2,
-                }}
-                whileHover={{
-                  scale: 1.1,
-                  y: -6,
-                }}
+                transition={{ duration: 0.4, delay: 0.2 }}
               >
                 <span className="feature-icon">
-                  <FaRocket />
+                  <FaRocket aria-hidden="true" />
                 </span>
                 <h4>Fast Performance</h4>
-                <p>
-                  Optimized code for
-                  lightning-fast load
-                  times
-                </p>
+                <p>Optimized code for quick load times and smooth UX</p>
               </motion.div>
 
               <motion.div
                 className="feature-item"
-                initial={{
-                  opacity: 0,
-                  scale: 0.85,
-                }}
-                whileInView={{
-                  opacity: 1,
-                  scale: 1,
-                }}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{
-                  duration: 0.4,
-                  delay: 0.3,
-                }}
-                whileHover={{
-                  scale: 1.1,
-                  y: -6,
-                }}
+                transition={{ duration: 0.4, delay: 0.3 }}
               >
                 <span className="feature-icon">
-                  📱
+                  <FaMobileAlt aria-hidden="true" />
                 </span>
                 <h4>Responsive</h4>
-                <p>
-                  Perfect experience on
-                  all devices
-                </p>
+                <p>Consistent experience across phones, tablets, and desktop</p>
               </motion.div>
 
               <motion.div
                 className="feature-item"
-                initial={{
-                  opacity: 0,
-                  scale: 0.85,
-                }}
-                whileInView={{
-                  opacity: 1,
-                  scale: 1,
-                }}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{
-                  duration: 0.4,
-                  delay: 0.4,
-                }}
-                whileHover={{
-                  scale: 1.1,
-                  y: -6,
-                }}
+                transition={{ duration: 0.4, delay: 0.4 }}
               >
                 <span className="feature-icon">
-                  💡
+                  <FaLightbulb aria-hidden="true" />
                 </span>
                 <h4>Creative Solutions</h4>
-                <p>
-                  Innovative approaches
-                  to complex problems
-                </p>
+                <p>Practical approaches to complex product problems</p>
               </motion.div>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* ================= SKILLS ================= */}
-      <section id="skills">
-        <Skills />
-      </section>
+      <Skills />
 
-      {/* ================= PROJECTS ================= */}
-      <section
-        id="projects"
-        className="projects-section-home"
-      >
+      <section id="projects" className="projects-section-home">
         <motion.div
           className="project-heading"
-          initial={{
-            opacity: 0,
-            y: 20,
-          }}
-          whileInView={{
-            opacity: 1,
-            y: 0,
-          }}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
@@ -282,15 +175,13 @@ const Home = () => {
         </motion.div>
 
         <div className="projects-container">
-          {featuredProjects.map(
-            (project, index) => (
-              <ProjectCard
-                key={project.name}
-                project={project}
-                index={index}
-              />
-            )
-          )}
+          {featuredProjects.map((project, index) => (
+            <ProjectCard
+              key={project.name}
+              project={project}
+              index={index}
+            />
+          ))}
         </div>
 
         <motion.div
@@ -302,20 +193,15 @@ const Home = () => {
           <Link to="/projects">
             <motion.button
               className="show-more"
-              whileHover={{
-                scale: 1.05,
-              }}
-              whileTap={{
-                scale: 0.95,
-              }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              Show More Projects..
+              Show More Projects
             </motion.button>
           </Link>
         </motion.div>
       </section>
 
-      {/* ================= CONTACT ================= */}
       <section
         id="contact"
         ref={contactRef}
@@ -323,14 +209,8 @@ const Home = () => {
       >
         <motion.div
           className="contact-heading"
-          initial={{
-            opacity: 0,
-            y: 20,
-          }}
-          whileInView={{
-            opacity: 1,
-            y: 0,
-          }}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >

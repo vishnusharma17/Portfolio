@@ -7,13 +7,53 @@ import {
   FaPhone,
 } from "react-icons/fa";
 
-import emailjs from "@emailjs/browser";
 import { motion } from "framer-motion";
 import { useCallback, useState } from "react";
 
 import { contactInfo, socialLinks } from "../config/links";
 import { trackLinkClick } from "../services/api";
 import "./ContactForm.css";
+
+const InfoCard = ({ icon, title, value, link }) => (
+  <div className="contact-info-card">
+    <div className="contact-icon">{icon}</div>
+    <h3>{title}</h3>
+    {link ? (
+      <a href={link}>{value}</a>
+    ) : (
+      <span>{value}</span>
+    )}
+  </div>
+);
+
+const SocialLink = ({ icon, label, url, onClick }) => (
+  <a
+    className="social-link"
+    href={url}
+    target={url.startsWith("http") ? "_blank" : undefined}
+    rel={url.startsWith("http") ? "noopener noreferrer" : undefined}
+    onClick={onClick}
+  >
+    <span className="social-icon">{icon}</span>
+    <span>{label}</span>
+  </a>
+);
+
+const Field = ({ label, name, value, error, onChange, type = "text" }) => (
+  <div className="form-field">
+    <label htmlFor={name}>{label}</label>
+    <input
+      id={name}
+      type={type}
+      name={name}
+      value={value}
+      onChange={onChange}
+      className={error ? "error" : ""}
+      autoComplete="on"
+    />
+    {error && <span className="error-message">{error}</span>}
+  </div>
+);
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({
@@ -50,8 +90,11 @@ const ContactForm = () => {
     if (!formData.lastName.trim())
       newErrors.lastName = "Last name required";
 
-    if (!formData.email.trim())
+    if (!formData.email.trim()) {
       newErrors.email = "Email required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Enter a valid email";
+    }
 
     if (!formData.subject.trim())
       newErrors.subject = "Subject required";
@@ -63,32 +106,29 @@ const ContactForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // ✅ EMAILJS SUBMIT
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
     if (!validate()) return;
 
     setIsSubmitting(true);
+    setSubmitStatus(null);
 
     try {
-      await emailjs.send(
-        "YOUR_SERVICE_ID",
-        "YOUR_TEMPLATE_ID",
-        {
-          from_name:
-            formData.firstName +
-            " " +
-            formData.lastName,
-          email: formData.email,
-          subject: formData.subject,
-          message: formData.message,
-        },
-        "YOUR_PUBLIC_KEY"
-      );
+      const fullName = `${formData.firstName} ${formData.lastName}`.trim();
+      const body = [
+        `Name: ${fullName}`,
+        `Email: ${formData.email}`,
+        "",
+        formData.message,
+      ].join("\n");
 
+      const mailto = `mailto:${contactInfo.email}?subject=${encodeURIComponent(
+        formData.subject
+      )}&body=${encodeURIComponent(body)}`;
+
+      window.location.href = mailto;
       setSubmitStatus("success");
-
       setFormData({
         firstName: "",
         lastName: "",
@@ -96,7 +136,7 @@ const ContactForm = () => {
         subject: "",
         message: "",
       });
-    } catch (err) {
+    } catch {
       setSubmitStatus("error");
     } finally {
       setIsSubmitting(false);
@@ -109,9 +149,12 @@ const ContactForm = () => {
 
   return (
     <div className="contact-main">
-      {/* LEFT */}
       <div className="contact-left">
-        <h1>Get In Touch</h1>
+        <h2>Get In Touch</h2>
+        <p className="contact-lead">
+          Prefer email? Reach out directly or use the form — it opens your mail
+          app with the message ready.
+        </p>
 
         <div className="contact-info-grid">
           <InfoCard
@@ -149,18 +192,23 @@ const ContactForm = () => {
               icon={<FaGithub />}
               label="GitHub"
               url={socialLinks.github}
+              onClick={() =>
+                handleSocialClick("github", socialLinks.github)
+              }
             />
 
             <SocialLink
               icon={<FaLinkedin />}
               label="LinkedIn"
               url={socialLinks.linkedin}
+              onClick={() =>
+                handleSocialClick("linkedin", socialLinks.linkedin)
+              }
             />
           </div>
         </div>
       </div>
 
-      {/* RIGHT */}
       <div className="contact-right">
         <motion.form onSubmit={handleSubmit}>
           <div className="name-section">
@@ -184,6 +232,7 @@ const ContactForm = () => {
           <Field
             label="Email"
             name="email"
+            type="email"
             value={formData.email}
             error={errors.email}
             onChange={handleChange}
@@ -198,29 +247,34 @@ const ContactForm = () => {
           />
 
           <div className="message">
-            <label>Message</label>
+            <label htmlFor="message">Message</label>
             <textarea
+              id="message"
               name="message"
               value={formData.message}
               onChange={handleChange}
+              className={errors.message ? "error" : ""}
             />
+            {errors.message && (
+              <span className="error-message">{errors.message}</span>
+            )}
           </div>
 
-          <button type="submit" disabled={isSubmitting}>
-            {isSubmitting
-              ? "Sending..."
-              : "Send Message"}
-          </button>
+          <div className="btn">
+            <button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Opening..." : "Send Message"}
+            </button>
+          </div>
 
           {submitStatus === "success" && (
             <p className="success-message">
-              ✅ Message sent!
+              Your email app should open with the message ready.
             </p>
           )}
 
           {submitStatus === "error" && (
             <p className="error-message-box">
-              ❌ Failed to send.
+              Could not open mail. Email me at {contactInfo.email}.
             </p>
           )}
         </motion.form>

@@ -28,31 +28,36 @@ const Skills = () => {
           >
             <h3>{category.category}</h3>
             <div className="skills-list">
-              {category.items.map((skill, index) => (
-                <motion.div
-                  key={skill.name}
-                  className="skill-item"
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: index * 0.05 }}
-                >
-                  <div className="skill-header">
-                    <span className="skill-icon">{skill.icon}</span>
-                    <span className="skill-name">{skill.name}</span>
-                    <span className="skill-percent">{skill.level}%</span>
-                  </div>
-                  <div className="skill-bar">
-                    <motion.div
-                      className="skill-progress"
-                      initial={{ width: 0 }}
-                      whileInView={{ width: `${skill.level}%` }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 1, delay: index * 0.1 }}
-                    />
-                  </div>
-                </motion.div>
-              ))}
+              {category.items.map((skill, index) => {
+                const Icon = skill.icon
+                return (
+                  <motion.div
+                    key={skill.name}
+                    className="skill-item"
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: index * 0.05 }}
+                  >
+                    <div className="skill-header">
+                      <span className="skill-icon">
+                        <Icon aria-hidden="true" />
+                      </span>
+                      <span className="skill-name">{skill.name}</span>
+                      <span className="skill-percent">{skill.level}%</span>
+                    </div>
+                    <div className="skill-bar">
+                      <motion.div
+                        className="skill-progress"
+                        initial={{ width: 0 }}
+                        whileInView={{ width: `${skill.level}%` }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 1, delay: index * 0.1 }}
+                      />
+                    </div>
+                  </motion.div>
+                )
+              })}
             </div>
           </motion.div>
         ))}
@@ -62,4 +67,3 @@ const Skills = () => {
 }
 
 export default Skills
-
