@@ -30,17 +30,6 @@ const Hero = () => {
 
   return (
     <section className="hero-section">
-      <div
-        className="hero-media"
-        style={{
-          backgroundImage: profile.heroImage
-            ? `url(${profile.heroImage})`
-            : undefined,
-        }}
-        aria-hidden="true"
-      />
-      <div className="hero-overlay" aria-hidden="true" />
-
       <div className="hero-container">
         <motion.div
           className="hero-content"
@@ -54,7 +43,8 @@ const Hero = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.15 }}
           >
-            <FaCode aria-hidden="true" /> {profile.title || "Full-Stack Web Developer"}
+            <FaCode aria-hidden="true" />{" "}
+            {profile.title || "Full-Stack Web Developer"}
           </motion.p>
 
           <motion.h1
@@ -139,6 +129,23 @@ const Hero = () => {
             )}
           </motion.div>
         </motion.div>
+
+        {profile.heroImage && (
+          <motion.div
+            className="hero-image"
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.25 }}
+          >
+            <div className="hero-image-frame">
+              <img
+                src={profile.heroImage}
+                alt={profile.name || "Profile"}
+                decoding="async"
+              />
+            </div>
+          </motion.div>
+        )}
       </div>
 
       <motion.div

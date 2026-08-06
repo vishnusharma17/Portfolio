@@ -54,10 +54,10 @@ const Admin = () => {
     }))
   }
 
-  const updateAboutIntro = (value) => {
+  const updateAbout = (field, value) => {
     setDraft((prev) => ({
       ...prev,
-      about: { ...prev.about, intro: value },
+      about: { ...prev.about, [field]: value },
     }))
   }
 
@@ -78,6 +78,8 @@ const Admin = () => {
       const result = await uploadFile(file, adminKey.trim())
       if (target.type === 'profile') {
         updateProfile(target.field, result.path)
+      } else if (target.type === 'about') {
+        updateAbout(target.field, result.path)
       } else if (target.type === 'project') {
         updateProject(target.index, 'image', result.path)
       }
@@ -214,14 +216,30 @@ const Admin = () => {
 
       <section className="admin-section">
         <h2>About</h2>
-        <label className="full">
-          Intro
-          <textarea
-            rows={3}
-            value={active.about?.intro || ''}
-            onChange={(e) => updateAboutIntro(e.target.value)}
-          />
-        </label>
+        <div className="admin-grid">
+          <label>
+            About image path
+            <input
+              value={active.about?.image || ''}
+              onChange={(e) => updateAbout('image', e.target.value)}
+            />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) =>
+                handleUpload(e, { type: 'about', field: 'image' })
+              }
+            />
+          </label>
+          <label className="full">
+            Intro
+            <textarea
+              rows={3}
+              value={active.about?.intro || ''}
+              onChange={(e) => updateAbout('intro', e.target.value)}
+            />
+          </label>
+        </div>
       </section>
 
       <section className="admin-section">

@@ -14,6 +14,10 @@ function withResolvedAssets(content) {
       heroImage: asset(content.profile?.heroImage),
       resume: asset(content.profile?.resume),
     },
+    about: {
+      ...content.about,
+      image: asset(content.about?.image),
+    },
     projects: (content.projects || []).map((project) => ({
       ...project,
       image: asset(project.image),

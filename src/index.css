@@ -110,21 +110,7 @@ textarea {
   color: var(--muted);
 }
 
-/* Minimal B&W cursor */
-.cursor {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--white);
-  pointer-events: none;
-  z-index: 9999;
-  mix-blend-mode: difference;
-  will-change: transform;
-  transform: translate(-50%, -50%);
-}
+/* Minimal B&W cursor styles live in Cursor.css */
 
 ::-webkit-scrollbar {
   width: 8px;

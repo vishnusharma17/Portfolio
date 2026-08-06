@@ -1,1 +1,0 @@
-import{j as o,L as e}from"./index-Cq6GQrHX.js";const n=()=>o.jsxs("div",{className:"not-found",children:[o.jsx("p",{className:"not-found-code",children:"404"}),o.jsx("h1",{children:"Page not found"}),o.jsx("p",{children:"The route you requested does not exist."}),o.jsx(e,{to:"/",className:"not-found-link",children:"Back to Home"})]});export{n as default};

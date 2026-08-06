@@ -14,6 +14,10 @@ module.exports = {
       files: ['src/context/**/*.{js,jsx}'],
       rules: { 'react-refresh/only-export-components': 'off' },
     },
+    {
+      files: ['vite.config.js'],
+      env: { node: true },
+    },
   ],
   settings: { react: { version: '18.2' } },
   plugins: ['react-refresh'],
