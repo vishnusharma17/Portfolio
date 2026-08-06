@@ -1,41 +1,18 @@
 # Vishnu Sharma — Portfolio
 
-Personal portfolio site (React + Vite), with an optional Express API for editing content.
+Personal portfolio site built with React + Vite.
 
-**Live:** https://vishnusharma17.github.io/Portfolio/
-
-## Run locally
-
-```bash
-npm install
-npm --prefix server install
-npm run dev
-```
+## Live
 
 | | URL |
 |---|---|
-| Site | http://localhost:5173/ |
-| API | http://localhost:4000 |
-| Admin | http://localhost:5173/admin |
-
-Admin opens only after OTP verification on the registered phone (`ADMIN_PHONE` in `server/.env`).
-
-## Build (GitHub Pages)
-
-```bash
-npm run build
-```
-
-Output goes to `docs/` (base path `/Portfolio/`). Push `docs/` to `main` for Pages.
+| Site | https://vishnusharma17.github.io/Portfolio/ |
+| Projects | https://vishnusharma17.github.io/Portfolio/projects |
+| Admin | https://vishnusharma17.github.io/Portfolio/admin |
 
 ## Content
 
-Site copy, projects, images paths, and contact info live in:
-
-- `server/data/content.json` (source of truth when API is running)
-- `public/content.json` / `docs/content.json` (static fallback)
-
-Edit via Admin after OTP login, or edit the JSON directly.
+Site copy, projects, and contact details are in `server/data/content.json` (with static copies in `public/content.json` and `docs/content.json`).
 
 ## Stack
 
