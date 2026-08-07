@@ -136,6 +136,12 @@ export async function verifyAdminOtp(otp) {
   })
 }
 
+export async function verifyAdminToken(adminToken) {
+  return request('/admin/verify-token', {
+    headers: { 'x-admin-token': adminToken },
+  })
+}
+
 export async function logoutAdmin(adminToken) {
   return request('/admin/logout', {
     method: 'POST',

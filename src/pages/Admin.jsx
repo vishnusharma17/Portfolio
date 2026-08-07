@@ -10,6 +10,7 @@ import {
   saveContent,
   uploadFile,
   verifyAdminOtp,
+  verifyAdminToken,
 } from '../services/api'
 import './Admin.css'
 
@@ -108,7 +109,8 @@ const Admin = () => {
   const [unlocked, setUnlocked] = useState(false)
 
   const [phoneMasked, setPhoneMasked] = useState('+91 ******2928')
-  const [otpSent, setOtpSent] = useState(false)
+  const [emailMasked, setEmailMasked] = useState('vish***@gmail.com')
+  const [devOtpCode, setDevOtpCode] = useState('')
   const [otp, setOtp] = useState('')
   const [sendingOtp, setSendingOtp] = useState(false)
   const [verifying, setVerifying] = useState(false)
@@ -127,13 +129,22 @@ const Admin = () => {
     fetchOtpInfo()
       .then((info) => {
         if (info?.phoneMasked) setPhoneMasked(info.phoneMasked)
+        if (info?.emailMasked) setEmailMasked(info.emailMasked)
       })
       .catch(() => {})
 
-    if (adminToken && rawContent) {
-      setDraft(structuredClone(rawContent))
-      setUnlocked(true)
-      setStatus('Session restored. Edit and save.')
+    if (adminToken) {
+      verifyAdminToken(adminToken)
+        .then(() => {
+          setUnlocked(true)
+          setStatus('Session restored. Edit and save.')
+        })
+        .catch(() => {
+          sessionStorage.removeItem(TOKEN_KEY)
+          setAdminToken('')
+          setUnlocked(false)
+          setStatus('Session expired. Please log in again.')
+        })
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -154,14 +165,18 @@ const Admin = () => {
   const handleSendOtp = async () => {
     setSendingOtp(true)
     setStatus('')
+    setDevOtpCode('')
     try {
       const result = await requestAdminOtp()
-      setOtpSent(true)
       setCooldown(60)
-      let msg = result.message || `OTP sent to ${result.phoneMasked || phoneMasked}`
-      if (result.devOtp) msg += ` (Dev OTP: ${result.devOtp})`
+      let msg = result.message || `OTP sent to ${result.emailMasked || emailMasked}`
+      if (result.devOtp) {
+        setDevOtpCode(result.devOtp)
+        msg += ` (Dev/Demo OTP: ${result.devOtp})`
+      }
       setStatus(msg)
       if (result.phoneMasked) setPhoneMasked(result.phoneMasked)
+      if (result.emailMasked) setEmailMasked(result.emailMasked)
     } catch (err) {
       setStatus(err.message || 'Failed to send OTP. Is the API running?')
     } finally {
@@ -170,23 +185,27 @@ const Admin = () => {
   }
 
   const handleVerifyOtp = async () => {
-    if (!/^\d{6}$/.test(otp.trim())) {
-      setStatus('Enter the 6-digit OTP.')
+    const val = otp.trim()
+    if (!val) {
+      setStatus('Enter the 6-digit OTP or Admin Password.')
       return
     }
 
     setVerifying(true)
     setStatus('')
     try {
-      const result = await verifyAdminOtp(otp.trim())
+      const result = await verifyAdminOtp(val)
       sessionStorage.setItem(TOKEN_KEY, result.token)
       setAdminToken(result.token)
-      setDraft(structuredClone(rawContent))
+      if (rawContent) {
+        setDraft(structuredClone(rawContent))
+      }
       setUnlocked(true)
       setOtp('')
-      setStatus('OTP verified. Admin panel unlocked.')
+      setDevOtpCode('')
+      setStatus('Login successful. Admin panel unlocked.')
     } catch (err) {
-      setStatus(err.message || 'OTP verification failed.')
+      setStatus(err.message || 'Verification failed.')
     } finally {
       setVerifying(false)
     }
@@ -202,8 +221,8 @@ const Admin = () => {
     setAdminToken('')
     setUnlocked(false)
     setDraft(null)
-    setOtpSent(false)
     setOtp('')
+    setDevOtpCode('')
     setStatus('Logged out.')
   }
 
@@ -298,54 +317,84 @@ const Admin = () => {
         <div className="admin-card">
           <h1>Admin Login</h1>
           <p>
-            OTP aapke registered number par jayega. Verify hone ke baad hi panel
-            open hoga.
+            Enter 6-digit OTP sent to registered email, or enter Admin Password.
           </p>
 
           <div className="otp-phone">
-            <span className="otp-label">Registered number</span>
-            <strong>{phoneMasked}</strong>
+            <span className="otp-label">Registered email / mobile</span>
+            <strong>{emailMasked} ({phoneMasked})</strong>
           </div>
 
-          {!otpSent ? (
-            <button type="button" onClick={handleSendOtp} disabled={sendingOtp}>
-              {sendingOtp ? 'Sending OTP…' : 'Send OTP'}
-            </button>
-          ) : (
-            <>
-              <label className="otp-field">
-                Enter 6-digit OTP
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  maxLength={6}
-                  value={otp}
-                  onChange={(e) =>
-                    setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))
-                  }
-                  placeholder="••••••"
-                />
-              </label>
-              <button
-                type="button"
-                onClick={handleVerifyOtp}
-                disabled={verifying || otp.length !== 6}
+          {devOtpCode ? (
+            <div
+              className="admin-dev-otp-banner"
+              style={{
+                background: 'rgba(59, 130, 246, 0.15)',
+                border: '1px solid rgba(59, 130, 246, 0.4)',
+                padding: '10px 14px',
+                borderRadius: '8px',
+                marginBottom: '16px',
+                textAlign: 'center',
+              }}
+            >
+              <span style={{ fontSize: '0.88rem', color: '#93c5fd' }}>
+                Demo / Dev OTP:{' '}
+              </span>
+              <strong
+                style={{
+                  fontSize: '1.25rem',
+                  letterSpacing: '2px',
+                  color: '#60a5fa',
+                }}
               >
-                {verifying ? 'Verifying…' : 'Verify & Open Admin'}
-              </button>
-              <button
-                type="button"
-                className="ghost"
-                onClick={handleSendOtp}
-                disabled={sendingOtp || cooldown > 0}
-              >
-                {cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend OTP'}
-              </button>
-            </>
-          )}
+                {devOtpCode}
+              </strong>
+            </div>
+          ) : null}
 
-          {status && <p className="admin-status">{status}</p>}
+          <label className="otp-field">
+            Enter OTP or Admin Password
+            <input
+              type="text"
+              autoComplete="off"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              placeholder="•••••• or Admin Password"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && otp.trim()) {
+                  handleVerifyOtp()
+                }
+              }}
+            />
+          </label>
+
+          <div
+            className="admin-login-actions"
+            style={{ display: 'flex', gap: '10px', marginTop: '12px' }}
+          >
+            <button
+              type="button"
+              onClick={handleVerifyOtp}
+              disabled={verifying || !otp.trim()}
+              style={{ flex: 1 }}
+            >
+              {verifying ? 'Verifying…' : 'Verify & Open Admin'}
+            </button>
+            <button
+              type="button"
+              className="ghost"
+              onClick={handleSendOtp}
+              disabled={sendingOtp || cooldown > 0}
+            >
+              {sendingOtp
+                ? 'Sending…'
+                : cooldown > 0
+                ? `Resend in ${cooldown}s`
+                : 'Send OTP'}
+            </button>
+          </div>
+
+          {status && <p className="admin-status" style={{ marginTop: '16px' }}>{status}</p>}
           <Link to="/" className="admin-back">
             Back to site
           </Link>

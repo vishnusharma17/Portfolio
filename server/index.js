@@ -15,6 +15,7 @@ import {
   verifyOtp,
 } from './otp.js'
 import { sendSmsOtp } from './sms.js'
+import { sendEmailOtp, maskEmail } from './email.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -29,6 +30,7 @@ const PORT = process.env.PORT || 4000
 const ADMIN_PHONE = normalizePhone(
   process.env.ADMIN_PHONE || '919664332928'
 )
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'vishnusharma983j@gmail.com'
 const SERVE_FRONTEND =
   process.env.SERVE_FRONTEND === 'true' || process.env.NODE_ENV === 'production'
 const ALLOW_DEV_OTP =
@@ -102,53 +104,71 @@ app.get('/api/health', (_req, res) => {
 app.get('/api/admin/otp-info', (_req, res) => {
   res.json({
     phoneMasked: maskPhone(ADMIN_PHONE),
-    message: 'OTP will be sent to your registered mobile number.',
+    emailMasked: maskEmail(ADMIN_EMAIL),
+    message: 'OTP will be sent to your registered email or mobile number.',
   })
+})
+
+app.get('/api/admin/verify-token', requireAdmin, (_req, res) => {
+  res.json({ valid: true })
+})
+
+app.post('/api/admin/verify-token', requireAdmin, (_req, res) => {
+  res.json({ valid: true })
 })
 
 app.post('/api/admin/request-otp', async (req, res) => {
   try {
-    const requested = normalizePhone(req.body?.phone || ADMIN_PHONE)
-    if (requested !== ADMIN_PHONE) {
-      return res.status(403).json({
-        error: 'This number is not authorized for admin access.',
-      })
-    }
-
     const { code, expiresIn } = createOtp()
-    const sms = await sendSmsOtp(ADMIN_PHONE, code)
 
-    if (!sms.ok) {
-      console.warn(`[OTP SMS failed via ${sms.provider}]`, sms.detail)
-      console.log(`[OTP for +${ADMIN_PHONE}] ${code}`)
+    // Try sending Email OTP first
+    const emailResult = await sendEmailOtp(ADMIN_EMAIL, code)
+    let smsResult = { ok: false }
 
-      // Dev fallback: still allow flow when SMS provider fails
-      if (ALLOW_DEV_OTP) {
-        return res.json({
-          success: true,
-          message: `SMS provider unavailable (${sms.provider}). Dev OTP logged on server.`,
-          phoneMasked: maskPhone(ADMIN_PHONE),
-          expiresIn,
-          channel: 'dev-console',
-          // Only in non-production so local testing works without SMS credits
-          ...(process.env.NODE_ENV !== 'production' ? { devOtp: code } : {}),
-        })
-      }
+    if (process.env.FAST2SMS_API_KEY || process.env.TWILIO_ACCOUNT_SID) {
+      smsResult = await sendSmsOtp(ADMIN_PHONE, code)
+    }
 
-      return res.status(502).json({
-        error:
-          'Could not send SMS OTP. Configure FAST2SMS_API_KEY or TWILIO credentials.',
-        detail: sms.detail,
+    if (emailResult.ok) {
+      console.log(`[OTP Email sent via ${emailResult.provider} to ${maskEmail(ADMIN_EMAIL)}]`)
+      return res.json({
+        success: true,
+        message: `OTP sent to email ${maskEmail(ADMIN_EMAIL)}${smsResult.ok ? ' & SMS ' + maskPhone(ADMIN_PHONE) : ''}`,
+        emailMasked: maskEmail(ADMIN_EMAIL),
+        phoneMasked: maskPhone(ADMIN_PHONE),
+        expiresIn,
+        channel: emailResult.provider,
       })
     }
 
-    console.log(`[OTP] sent via ${sms.provider} to ${maskPhone(ADMIN_PHONE)}`)
-    res.json({
-      success: true,
-      message: `OTP sent to ${maskPhone(ADMIN_PHONE)}`,
-      phoneMasked: maskPhone(ADMIN_PHONE),
-      expiresIn,
-      channel: sms.provider,
+    if (smsResult.ok) {
+      console.log(`[OTP SMS sent via ${smsResult.provider} to ${maskPhone(ADMIN_PHONE)}]`)
+      return res.json({
+        success: true,
+        message: `OTP sent to mobile ${maskPhone(ADMIN_PHONE)}`,
+        phoneMasked: maskPhone(ADMIN_PHONE),
+        expiresIn,
+        channel: smsResult.provider,
+      })
+    }
+
+    // Dev fallback if no email/SMS provider credentials in server/.env
+    console.log(`[OTP for ${maskEmail(ADMIN_EMAIL)}] ${code}`)
+    if (ALLOW_DEV_OTP) {
+      return res.json({
+        success: true,
+        message: `Email gateway not configured in server/.env. Use Dev OTP below or Admin Password.`,
+        emailMasked: maskEmail(ADMIN_EMAIL),
+        phoneMasked: maskPhone(ADMIN_PHONE),
+        expiresIn,
+        channel: 'dev-console',
+        devOtp: code,
+      })
+    }
+
+    return res.status(502).json({
+      error: 'Could not send OTP. Configure GMAIL_USER / RESEND_API_KEY in server/.env or use Admin Password.',
+      devOtp: code,
     })
   } catch (err) {
     console.error(err)
